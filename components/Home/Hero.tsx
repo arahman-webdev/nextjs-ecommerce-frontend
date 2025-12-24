@@ -52,7 +52,7 @@ const heroSlides = [
     title: "Home & Living",
     subtitle: "Transform Your Space",
     description: "Premium quality furniture and home decor at affordable prices",
-    image: "/api/placeholder/1200/600",
+    image: "https://res.cloudinary.com/dvx6vfu8y/image/upload/v1766113194/products/zbw1fk1ynxramjaumurc.jpg",
     imageAlt: "Home Decor",
     buttonText: "Explore",
     buttonLink: "/collections/home",
@@ -66,7 +66,7 @@ const heroSlides = [
     title: "Fitness & Sports",
     subtitle: "Stay Active, Stay Healthy",
     description: "Professional gear for your fitness journey and outdoor adventures",
-    image: "/api/placeholder/1200/600",
+    image: "https://i.ibb.co.com/6RWTs176/slider-main-demo-1.jpg",
     imageAlt: "Sports Equipment",
     buttonText: "Get Fit",
     buttonLink: "/collections/sports",
@@ -169,7 +169,7 @@ export default function HeroSlider() {
     <div className="relative">
       {/* Main Hero Slider */}
       <div 
-        className="relative overflow-hidden rounded-2xl mx-4 lg:mx-auto w-full mt-4 "
+        className="relative overflow-hidden bg-[#F8F8F8] rounded-2xl mx-4 lg:mx-auto w-full mt-4 py-16 "
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -205,10 +205,7 @@ export default function HeroSlider() {
                 "relative w-full h-full flex items-center",
                 slide.bgColor
               )}>
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute inset-0 bg-[url('/api/placeholder/200/200')] bg-repeat bg-center"></div>
-                </div>
+              
 
                 {/* Content */}
                 <div className="container mx-auto px-4 md:px-8 relative z-10">
@@ -280,16 +277,16 @@ export default function HeroSlider() {
 
                     {/* Image */}
                     <div className="relative hidden md:block">
-                      <div className="relative w-full h-96">
-                        <div className="absolute -right-4 -top-4 w-72 h-72 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl"></div>
+                      <div className="relative w-full h-full">
+                        <div className="absolute -right-4 -top-4 bg-[#F8F8F8] to-transparent rounded-full blur-3xl"></div>
                         <div className="relative w-full h-full flex items-center justify-center">
-                          <div className="w-80 h-80 rounded-2xl overflow-hidden shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                          <div className="w-lg -mt-6 h-full rounded-2xl overflow-hidden transform  hover:rotate-0 transition-transform duration-500">
                             <Image
                               src={slide.image}
                               alt={slide.imageAlt}
-                              width={400}
-                              height={400}
-                              className="w-full h-full object-cover"
+                              width={700}
+                              height={700}
+                              className="w-full h-full object-contain"
                             />
                           </div>
                           {/* Floating Badges */}
