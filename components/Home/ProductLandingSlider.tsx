@@ -95,13 +95,14 @@ export default function HomeProductSlider() {
               <div className="grid items-center gap-12 lg:grid-cols-2">
 
                 {/* Image */}
-                <div className="relative mx-auto aspect-square max-w-xl">
+                <div className="relative h-96 w-full mx-auto aspect-square max-w-xl">
                   <Image
                     src={slide.image}
                     alt={slide.title}
-                    fill
-                    className="object-contain drop-shadow-2xl"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    width={800}
+                    height={800}
+                    className="object-cover drop-shadow-2xl"
+                   
                   />
                 </div>
 
