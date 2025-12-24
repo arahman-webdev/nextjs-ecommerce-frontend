@@ -1,16 +1,16 @@
 // components/navbar/Navbar.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { 
-  Search, 
-  ShoppingCart, 
-  Menu, 
-  X, 
-  User, 
-  ChevronDown, 
+import {
+  Search,
+  ShoppingCart,
+  Menu,
+  X,
+  User,
+  ChevronDown,
   LogOut,
   Package,
   Settings,
@@ -30,6 +30,8 @@ import { getMyProfile, logOutUser } from '@/app/utills/auth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { CartContext } from '@/app/context/CartContext';
+import { CartContextType } from '@/types/productType';
 
 type UserType = {
   id: string;
@@ -60,6 +62,18 @@ export default function Navbar() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+
+  const pathName = usePathname();
+
+
+
+  const cartContext = useContext(CartContext) as CartContextType
+  const cartItems = cartContext?.cartItems ?? []
+
+  const totalQuantity = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  )
 
   /* -------------------- Fetch User -------------------- */
   useEffect(() => {
@@ -96,13 +110,13 @@ export default function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    
+
     const queryParams = new URLSearchParams();
     queryParams.set('q', searchQuery);
     if (selectedCategory) {
       queryParams.set('category', selectedCategory);
     }
-    
+
     router.push(`/products?${queryParams.toString()}`);
     setSearchQuery('');
     setIsSearchOpen(false);
@@ -169,11 +183,10 @@ export default function Navbar() {
   return (
     <>
       {/* Main Navbar */}
-      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b' 
-          : 'bg-white dark:bg-gray-900'
-      }`}>
+      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled
+        ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b'
+        : 'bg-white dark:bg-gray-900'
+        }`}>
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
@@ -194,15 +207,14 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium ${
-                    pathname === link.href ? 'text-primary' : ''
-                  }`}
+                  className={`flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium ${pathname === link.href ? 'text-primary' : ''
+                    }`}
                 >
                   <link.icon className="h-4 w-4" />
                   <span>{link.label}</span>
                 </Link>
               ))}
-              
+
               {/* Categories Dropdown */}
               <div className="relative group">
                 <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium">
@@ -242,7 +254,7 @@ export default function Navbar() {
                       </option>
                     ))}
                   </select>
-                  
+
                   {/* Search Input */}
                   <input
                     type="text"
@@ -251,7 +263,7 @@ export default function Navbar() {
                     placeholder="Search for products..."
                     className="flex-1 px-4 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none"
                   />
-                  
+
                   {/* Search Button */}
                   <button
                     type="submit"
@@ -275,16 +287,24 @@ export default function Navbar() {
               </button>
 
               {/* Shopping Cart */}
-              <Link
+              <Link href="/cart" className="relative p-2">
+                <ShoppingCart className="h-5 w-5" />
+                {totalQuantity > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {totalQuantity}
+                  </span>
+                )}
+              </Link>
+              {/* <Link
                 href="/cart"
                 className="p-2 text-gray-700 dark:text-gray-300 hover:text-primary relative"
                 aria-label="Shopping Cart"
               >
-                <ShoppingCart className="h-5 w-5" />
+
                 <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   3
                 </span>
-              </Link>
+              </Link> */}
 
               {/* User Authentication Section */}
               {loading ? (
@@ -319,7 +339,7 @@ export default function Navbar() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    
+
                     {getUserLinks().map((link) => (
                       <DropdownMenuItem key={link.href} asChild>
                         <Link href={link.href} className="cursor-pointer">
@@ -328,9 +348,9 @@ export default function Navbar() {
                         </Link>
                       </DropdownMenuItem>
                     ))}
-                    
+
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={handleLogout}
                       className="text-red-600 cursor-pointer"
                     >
@@ -423,15 +443,14 @@ export default function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${
-                      pathname === link.href ? 'bg-primary/10 text-primary' : ''
-                    }`}
+                    className={`flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${pathname === link.href ? 'bg-primary/10 text-primary' : ''
+                      }`}
                   >
                     <link.icon className="h-5 w-5" />
                     <span>{link.label}</span>
                   </Link>
                 ))}
-                
+
                 {/* Categories in Mobile */}
                 <div className="px-4 py-3">
                   <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 flex items-center">
@@ -471,7 +490,7 @@ export default function Navbar() {
                           <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-1">
                         {getUserLinks().map((link) => (
                           <Link
@@ -484,7 +503,7 @@ export default function Navbar() {
                             <span>{link.label}</span>
                           </Link>
                         ))}
-                        
+
                         <button
                           onClick={() => {
                             handleLogout();
