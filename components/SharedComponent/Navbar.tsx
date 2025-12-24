@@ -21,7 +21,6 @@ import {
   LogIn,
   UserPlus,
   Store,
-  Home,
   Info,
   Phone,
   Grid
@@ -136,10 +135,10 @@ export default function Navbar() {
 
   // Navigation links
   const navLinks = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/about', label: 'About', icon: Info },
-    { href: '/products', label: 'All Products', icon: Package },
-    { href: '/contact', label: 'Contact', icon: Phone },
+    { href: '/', label: 'Home' },
+    { href: '/about', label: 'About' },
+    { href: '/products', label: 'All Products' },
+    { href: '/contact', label: 'Contact' },
   ];
 
   // User dashboard links based on role
@@ -210,31 +209,11 @@ export default function Navbar() {
                   className={`flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium ${pathname === link.href ? 'text-primary' : ''
                     }`}
                 >
-                  <link.icon className="h-4 w-4" />
+                  
                   <span>{link.label}</span>
                 </Link>
               ))}
 
-              {/* Categories Dropdown */}
-              <div className="relative group">
-                <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium">
-                  <Grid className="h-4 w-4" />
-                  <span>Categories</span>
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 border border-gray-200 dark:border-gray-700">
-                  {categories.map((category) => (
-                    <Link
-                      key={category.id}
-                      href={`/products?category=${category.slug}`}
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      <span className="text-lg">{category.icon}</span>
-                      <span>{category.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
             </nav>
 
             {/* Search Bar (Desktop) */}
@@ -446,7 +425,7 @@ export default function Navbar() {
                     className={`flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${pathname === link.href ? 'bg-primary/10 text-primary' : ''
                       }`}
                   >
-                    <link.icon className="h-5 w-5" />
+                  
                     <span>{link.label}</span>
                   </Link>
                 ))}
