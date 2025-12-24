@@ -72,13 +72,13 @@ function LoginFormContent() {
           } catch {
             // Fallback based on role
             if (userRole === 'ADMIN') targetUrl = '/dashboard/admin'
-            else if (userRole === 'GUIDE') targetUrl = '/dashboard/guide'
-            else if (userRole === 'TOURIST') targetUrl = '/dashboard/tourist/profile'
+            else if (userRole === 'SELLER') targetUrl = '/dashboard/guide'
+            else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/tourist/profile'
           }
         } else {
           if (userRole === 'ADMIN') targetUrl = '/dashboard/admin'
-          else if (userRole === 'GUIDE') targetUrl = '/dashboard/guide'
-          else if (userRole === 'TOURIST') targetUrl = '/dashboard/tourist'
+          else if (userRole === 'SELLER') targetUrl = '/dashboard/guide'
+          else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/tourist'
         }
 
         router.replace(targetUrl)
@@ -145,37 +145,37 @@ function LoginFormContent() {
         if (data.data.refreshToken) {
           localStorage.setItem('refreshToken', data.data.refreshToken)
         }
-        localStorage.setItem('userRole', data.data.user?.role || 'TOURIST')
+        localStorage.setItem('userRole', data.data.user?.role || 'CUSTOMER')
         localStorage.setItem('user', JSON.stringify(data.data.user || {}))
         localStorage.setItem('loginTime', Date.now().toString())
 
         toast.success(data.message || "Welcome back! Login successful!")
 
-        const userRole = data.data.user?.role || 'TOURIST'
+        const userRole = data.data.user?.role || 'CUSTOMER'
 
         // Determine where to redirect
-        let targetUrl = '/dashboard'
-        if (redirectUrl) {
-          targetUrl = redirectUrl
-        } else {
-          // No redirect param, use role-based default
-          switch (userRole.toUpperCase()) {
-            case 'ADMIN':
-              targetUrl = '/dashboard/admin'
-              break
-            case 'GUIDE':
-              targetUrl = '/dashboard/guide'
-              break
-            case 'TOURIST':
-              targetUrl = '/dashboard/tourist'
-              break
-          }
-        }
+        // let targetUrl = '/dashboard'
+        // if (redirectUrl) {
+        //   targetUrl = redirectUrl
+        // } else {
+        //   // No redirect param, use role-based default
+        //   switch (userRole.toUpperCase()) {
+        //     case 'ADMIN':
+        //       targetUrl = '/dashboard/admin'
+        //       break
+        //     case 'SELLER':
+        //       targetUrl = '/dashboard/guide'
+        //       break
+        //     case 'CUSTOMER':
+        //       targetUrl = '/dashboard/tourist'
+        //       break
+        //   }
+        // }
 
-        console.log('Login successful, redirecting to:', targetUrl)
+        // console.log('Login successful, redirecting to:', targetUrl)
 
-        // Use window.location for a clean redirect
-        window.location.href = targetUrl
+        // // Use window.location for a clean redirect
+        // window.location.href = targetUrl
 
       } else {
         const errorMessage = data.message || "Login failed. Please check your credentials."
@@ -323,7 +323,7 @@ function LoginFormContent() {
                     onClick={() => fillDemo("tourist")}
                     className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
                   >
-                    Tourist
+                    Seller
                   </Button>
 
                   <Button
@@ -331,7 +331,7 @@ function LoginFormContent() {
                     onClick={() => fillDemo("guide")}
                     className="rounded-xl bg-green-600 hover:bg-green-700 text-white"
                   >
-                    Guide
+                    Customer
                   </Button>
                 </div>
 
