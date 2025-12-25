@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Star, ShoppingBag, Heart, Eye, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { AddToCart } from '@/components/SharedComponent/AddToCart';
+import { useState } from 'react';
 
 interface ProductCardProps {
   product: any;
@@ -13,13 +15,24 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
+  const [isSpinner, setIsSpinner] = useState(false);
+
   const mainImage = product.productImages?.[0]?.imageUrl || '/api/placeholder/400/400';
   const averageRating = product.averageRating || 0;
   const reviewCount = product.reviewCount || 0;
   const isInStock = product.stock > 0;
-  const discount = product.originalPrice 
+  const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null;
+
+  const handleAddToCart = async () => {
+    setIsSpinner(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 800));
+    setIsSpinner(false);
+  };
+
+  console.log("from product card ", product)
 
   return (
     <div className={cn(
@@ -40,21 +53,21 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         </Link>
-        
+
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
           {discount && (
-            <span className="bg-primary text-white px-2 py-1 rounded text-xs font-bold">
+            <span className="bg-primary text-white px-2 py-1 rounded text-xs font-bold shadow-md">
               -{discount}%
             </span>
           )}
           {product.isFeatured && (
-            <span className="bg-amber-500 text-white px-2 py-1 rounded text-xs font-bold">
+            <span className="bg-amber-500 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
               Featured
             </span>
           )}
           {!isInStock && (
-            <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+            <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
               Out of Stock
             </span>
           )}
@@ -97,7 +110,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                 isInStock ? "bg-green-500" : "bg-red-500"
               )} />
               <span className="text-xs text-gray-500">
-                {isInStock ? 'In Stock' : 'Out of Stock'}
+                {isInStock ? `${product.stock} in stock` : 'Out of Stock'}
               </span>
             </div>
           </div>
@@ -130,7 +143,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
               ))}
             </div>
             <span className="text-sm text-gray-600">
-              {averageRating.toFixed(1)} ({reviewCount})
+              {averageRating.toFixed(1)} ({reviewCount} reviews)
             </span>
           </div>
         </div>
@@ -140,30 +153,31 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-gray-900">
-                ${product.price}
+                ${product.price.toFixed(2)}
               </span>
               {product.originalPrice && (
                 <span className="text-sm text-gray-400 line-through">
-                  ${product.originalPrice}
+                  ${product.originalPrice.toFixed(2)}
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 mt-1">
               {isInStock ? `${product.stock} items left` : 'Restocking soon'}
             </p>
           </div>
 
-          <Button
-            size="sm"
-            disabled={!isInStock}
-            className={cn(
-              "bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg",
-              !isInStock && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <ShoppingBag className="h-4 w-4 mr-2" />
-            Add to Cart
-          </Button>
+          <AddToCart
+            product={{
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              productImages: product.productImages,
+              stock: product.stock,
+            }}
+            onclick={handleAddToCart}
+            isSpinner={isSpinner}
+          />
+
         </div>
       </div>
     </div>

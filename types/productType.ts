@@ -1,52 +1,16 @@
-
-
-export interface ProductImages {
-  id?: string,
-  imageUrl: string
-}
-
-
-
-export interface Product {
-  id: number
+export interface CartItem {
+  id: string
   name: string
-  slug: string
-  category: string
   price: number
-  description: string
-  rating?: number
   quantity: number
-  productImages: ProductImages[]
+  productImages: { imageUrl: string }[]
+  stock?: number
 }
 
-export interface ProductsResponse {
-  success: boolean
-  data: Product[]
-  pagination?: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
+export interface CartContextType {
+  cartItems: CartItem[]
+  addToCart: (product: Omit<CartItem, "quantity">) => void
+  removeFromCart: (id: string) => void
+  updateQuantity: (id: string, delta: number) => void
+  clearCart: () => void
 }
-
-export interface ProductFilters {
-  page: number
-  limit: number
-  searchTerm?: string
-  category?: string
-  sortBy?: string
-  orderBy?: string
-}
-
-export type CartContextType = {
-  cartItems: Product[]
-  addToCart: (product: Omit<Product, "quantity">) => void
-  removeFromCart: (id: number) => void
-  updateQuantity: (id: number, delta: number) => void
- 
-}
-
-
-
- 
