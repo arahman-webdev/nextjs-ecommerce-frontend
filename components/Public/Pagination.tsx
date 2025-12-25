@@ -1,16 +1,24 @@
-
+// components/products/Pagination.tsx
 'use client';
 
-import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
   onPageChange: (page: number) => void;
 }
 
-export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
+export default function Pagination({
+  currentPage,
+  totalPages,
+  totalItems,
+  itemsPerPage,
+  onPageChange,
+}: PaginationProps) {
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
@@ -31,51 +39,100 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
     return pages;
   };
 
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
   return (
-    <div className="flex items-center justify-center gap-2">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className={`flex items-center justify-center w-10 h-10 rounded-lg ${
-          currentPage === 1
-            ? 'text-gray-400 cursor-not-allowed'
-            : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
-        }`}
-      >
-        <ChevronLeft size={20} />
-      </button>
-      
-      {getPageNumbers().map((page) => (
-        <button
-          key={page}
-          onClick={() => onPageChange(page)}
-          className={`w-10 h-10 rounded-lg font-medium ${
-            currentPage === page
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
-          }`}
+    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+      {/* Page Info */}
+      <div className="text-sm text-gray-600">
+        Showing <span className="font-semibold">{startItem}</span> to{' '}
+        <span className="font-semibold">{endItem}</span> of{' '}
+        <span className="font-semibold">{totalItems}</span> products
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center gap-2">
+        {/* First Page */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="hidden md:inline-flex"
         >
-          {page}
-        </button>
-      ))}
-      
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className={`flex items-center justify-center w-10 h-10 rounded-lg ${
-          currentPage === totalPages
-            ? 'text-gray-400 cursor-not-allowed'
-            : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
-        }`}
-      >
-        <ChevronRight size={20} />
-      </button>
-      
-      {totalPages > 5 && (
-        <span className="ml-2 text-gray-600">
-          Page {currentPage} of {totalPages}
-        </span>
-      )}
+          <ChevronsLeft className="h-4 w-4" />
+        </Button>
+
+        {/* Previous Page */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+
+        {/* Page Numbers */}
+        <div className="flex items-center gap-1">
+          {getPageNumbers().map((page) => (
+            <Button
+              key={page}
+              variant={currentPage === page ? "default" : "outline"}
+              size="sm"
+              onClick={() => onPageChange(page)}
+              className={cn(
+                "min-w-[40px]",
+                
+              )}
+            >
+              {page}
+            </Button>
+          ))}
+        </div>
+
+        {/* Next Page */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+
+        {/* Last Page */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="hidden md:inline-flex"
+        >
+          <ChevronsRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Page Selector */}
+      <div className="flex items-center gap-2 text-sm text-gray-600">
+        <span>Go to page:</span>
+        <select
+          value={currentPage}
+          onChange={(e) => onPageChange(parseInt(e.target.value))}
+          className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+        >
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <option key={page} value={page}>
+              {page}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
+}
+
+function cn(...classes: string[]) {
+  return classes.filter(Boolean).join(' ');
 }

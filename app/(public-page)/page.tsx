@@ -1,4 +1,5 @@
 
+import MeetBestSeeler from "@/components/Home/BestSellingProduct";
 import ModernHero from "@/components/Home/CategoryCard";
 import CategorySection from "@/components/Home/CategorySection";
 import FeatureCard from "@/components/Home/FeatureCard";
@@ -35,6 +36,7 @@ export default function Home() {
         />
       </div>
     </section>
+    <MeetBestSeeler />
       <HomeProductSlider />
     </div>
   );

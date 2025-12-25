@@ -110,8 +110,10 @@ export default function Navbar() {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
+    // http://localhost:3000/products?searchTerm=smart&limit=12
+
     const queryParams = new URLSearchParams();
-    queryParams.set('q', searchQuery);
+    queryParams.set('searchTerm', searchQuery);
     if (selectedCategory) {
       queryParams.set('category', selectedCategory);
     }

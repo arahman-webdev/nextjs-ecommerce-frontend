@@ -1,40 +1,27 @@
+// app/products/page.tsx
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, MapPin, Globe } from 'lucide-react';
+import { Search, Filter, Grid3X3, List, Star, ShoppingBag, Truck, Shield } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import FilterSidebar from './FilterSidebar';
-import TourCard from './ProductCard';
+import ProductCard from './ProductCard';
 import Pagination from './Pagination';
 
-
 // Loading component
-function ExploreTourLoading() {
+function ProductsLoading() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section Skeleton */}
-      <div className="bg-linear-to-r from-blue-600 to-blue-800 text-white py-12">
+      <div className="bg-gradient-to-r from-primary/90 to-primary py-16">
         <div className="container mx-auto px-4">
-          <div className="h-8 bg-blue-500/50 rounded w-1/2 mb-4"></div>
-          <div className="h-4 bg-blue-500/50 rounded w-1/3 mb-8"></div>
-          <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-4 bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-              <div className="flex-1">
-                <div className="h-4 bg-blue-500/50 rounded w-24 mb-2"></div>
-                <div className="h-10 bg-white/20 rounded"></div>
-              </div>
-              <div className="flex-1">
-                <div className="h-4 bg-blue-500/50 rounded w-24 mb-2"></div>
-                <div className="h-10 bg-white/20 rounded"></div>
-              </div>
-              <div className="flex-1">
-                <div className="h-4 bg-blue-500/50 rounded w-24 mb-2"></div>
-                <div className="h-10 bg-white/20 rounded"></div>
-              </div>
-              <div className="flex items-end">
-                <div className="h-10 bg-blue-500/70 rounded w-24"></div>
-              </div>
-            </div>
+          <div className="h-10 bg-primary/70 rounded w-1/3 mb-4 mx-auto"></div>
+          <div className="h-6 bg-primary/70 rounded w-1/2 mb-8 mx-auto"></div>
+          <div className="max-w-3xl mx-auto">
+            <div className="h-14 bg-white/20 rounded-lg"></div>
           </div>
         </div>
       </div>
@@ -45,10 +32,10 @@ function ExploreTourLoading() {
           {/* Filters Sidebar Skeleton */}
           <div className="lg:w-1/4">
             <div className="sticky top-8">
-              <div className="bg-white rounded-xl shadow p-6 space-y-4">
+              <div className="bg-white rounded-xl shadow p-6 space-y-6">
                 {[...Array(5)].map((_, i) => (
                   <div key={i}>
-                    <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+                    <div className="h-5 bg-gray-300 rounded w-1/2 mb-3"></div>
                     <div className="h-10 bg-gray-200 rounded"></div>
                   </div>
                 ))}
@@ -56,27 +43,27 @@ function ExploreTourLoading() {
             </div>
           </div>
 
-          {/* Tours List Skeleton */}
+          {/* Products List Skeleton */}
           <div className="lg:w-3/4">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
               <div className="space-y-2">
-                <div className="h-6 bg-gray-300 rounded w-48"></div>
-                <div className="h-4 bg-gray-300 rounded w-32"></div>
+                <div className="h-7 bg-gray-300 rounded w-48"></div>
+                <div className="h-5 bg-gray-300 rounded w-32"></div>
               </div>
-              <div className="flex gap-2">
-                <div className="h-10 bg-gray-300 rounded w-32"></div>
-                <div className="h-10 bg-gray-300 rounded w-32"></div>
+              <div className="flex gap-3">
+                <div className="h-11 bg-gray-300 rounded w-32"></div>
+                <div className="h-11 bg-gray-300 rounded w-32"></div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden animate-pulse">
-                  <div className="h-48 bg-gray-300"></div>
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="bg-white rounded-xl shadow overflow-hidden animate-pulse">
+                  <div className="h-56 bg-gray-300"></div>
                   <div className="p-4 space-y-3">
-                    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-                    <div className="h-3 bg-gray-300 rounded w-1/4"></div>
+                    <div className="h-5 bg-gray-300 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                    <div className="h-6 bg-gray-300 rounded w-1/4"></div>
                   </div>
                 </div>
               ))}
@@ -88,99 +75,88 @@ function ExploreTourLoading() {
   );
 }
 
-// Main content component wrapped in Suspense
-function ExploreTourContent() {
+// Main content component
+function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [tours, setTours] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('searchTerm') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
-  const [city, setCity] = useState(searchParams.get('city') || '');
-  const [language, setLanguage] = useState(searchParams.get('language') || '');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'createdAt');
-  const [orderBy, setOrderBy] = useState(searchParams.get('orderBy') || 'desc');
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    parseInt(searchParams.get('minPrice') || '0'),
+    parseInt(searchParams.get('maxPrice') || '10000')
+  ]);
+  const [sortBy, setSortBy] = useState<'price' | 'averageRating' | 'createdAt' | 'name'>(
+    (searchParams.get('sortBy') as any) || 'createdAt'
+  );
+  const [orderBy, setOrderBy] = useState<'asc' | 'desc'>(
+    (searchParams.get('orderBy') as any) || 'desc'
+  );
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [totalPages, setTotalPages] = useState(1);
-  const [showMap, setShowMap] = useState(false);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [totalTours, setTotalTours] = useState(0);
 
-  // Language options
-  const languageOptions = [
-    'English', 'Spanish', 'French', 'German', 'Italian', 
-    'Japanese', 'Chinese', 'Korean', 'Arabic', 'Russian',
-    'Portuguese', 'Hindi', 'Bengali', 'Turkish'
+  // Available categories - you can fetch these from API
+  const categories = [
+    { id: 'electronics', name: 'Electronics', icon: '💻' },
+    { id: 'fashion', name: 'Fashion', icon: '👕' },
+    { id: 'home', name: 'Home & Garden', icon: '🏠' },
+    { id: 'beauty', name: 'Beauty', icon: '💄' },
+    { id: 'sports', name: 'Sports', icon: '⚽' },
+    { id: 'books', name: 'Books', icon: '📚' },
   ];
 
-  // Build query parameters only for non-default values
+  // Build query parameters
   const buildQueryParams = () => {
     const params = new URLSearchParams();
     
     if (page !== 1) params.append('page', page.toString());
     if (searchTerm) params.append('searchTerm', searchTerm);
     if (category) params.append('category', category);
-    if (city) params.append('city', city);
-    if (language) params.append('language', language);
+    if (priceRange[0] > 0) params.append('minPrice', priceRange[0].toString());
+    if (priceRange[1] < 10000) params.append('maxPrice', priceRange[1].toString());
     if (sortBy !== 'createdAt') params.append('sortBy', sortBy);
     if (orderBy !== 'desc') params.append('orderBy', orderBy);
-    if (selectedDate) params.append('date', selectedDate);
-    if (priceRange[0] !== 0) params.append('minPrice', priceRange[0].toString());
-    if (priceRange[1] !== 10000) params.append('maxPrice', priceRange[1].toString());
     
     return params;
   };
 
-  // Fetch tours based on filters
-  const fetchTours = async () => {
+  // Fetch products
+  const fetchProducts = async () => {
     setLoading(true);
     try {
       const params = buildQueryParams();
+      params.append('limit', '12'); // Products per page
       
-      // Update URL - only if there are any params
+      // Update URL
       const queryString = params.toString();
-      const newUrl = queryString ? `/tours?${queryString}` : '/tours';
+      const newUrl = queryString ? `/products?${queryString}` : '/products';
       
-      // Only push to router if not initial load
       if (!isInitialLoad) {
         router.push(newUrl);
       }
 
-      // For the API call
-      const apiParams = new URLSearchParams();
-      apiParams.append('page', page.toString());
-      apiParams.append('limit', '5');
-      
-      if (searchTerm) apiParams.append('searchTerm', searchTerm);
-      if (category) apiParams.append('category', category);
-      if (city) apiParams.append('city', city);
-      if (language) apiParams.append('language', language);
-      if (sortBy) apiParams.append('sortBy', sortBy);
-      if (orderBy) apiParams.append('orderBy', orderBy);
-      if (selectedDate) apiParams.append('date', selectedDate);
-      if (priceRange[0] > 0) apiParams.append('minPrice', priceRange[0].toString());
-      if (priceRange[1] < 10000) apiParams.append('maxPrice', priceRange[1].toString());
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tour?${apiParams.toString()}`);
+      const response = await fetch(`http://localhost:5000/api/product?${params.toString()}`);
       const data = await response.json();
       
       if (data.success) {
-        setTours(data.data || []);
-        setTotalTours(data.pagination?.total || 0);
+        setProducts(data.data || []);
+        setTotalProducts(data.pagination?.total || 0);
         setTotalPages(data.pagination?.totalPages || 1);
       } else {
-        console.error('API returned success: false', data);
-        setTours([]);
-        setTotalTours(0);
+        setProducts([]);
+        setTotalProducts(0);
         setTotalPages(1);
       }
     } catch (error) {
-      console.error('Error fetching tours:', error);
-      setTours([]);
-      setTotalTours(0);
+      console.error('Error fetching products:', error);
+      setProducts([]);
+      setTotalProducts(0);
       setTotalPages(1);
     } finally {
       setLoading(false);
@@ -190,120 +166,128 @@ function ExploreTourContent() {
     }
   };
 
-  // Initial fetch on mount
+  // Initial fetch
   useEffect(() => {
-    fetchTours();
+    fetchProducts();
   }, []);
 
   // Fetch when page changes
   useEffect(() => {
     if (!isInitialLoad) {
-      fetchTours();
+      fetchProducts();
     }
   }, [page]);
 
-  // Fetch when sort or order changes
+  // Fetch when sort changes
   useEffect(() => {
     if (!isInitialLoad) {
       setPage(1);
-      fetchTours();
+      fetchProducts();
     }
   }, [sortBy, orderBy]);
 
-  // Handle search submit
+  // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchTours();
+    fetchProducts();
   };
 
-  // Reset all filters
+  // Handle category toggle
+  const handleCategoryToggle = (catId: string) => {
+    setCategory(catId === category ? '' : catId);
+    setPage(1);
+    setTimeout(() => fetchProducts(), 0);
+  };
+
+  // Reset filters
   const handleResetFilters = () => {
     setSearchTerm('');
     setCategory('');
-    setCity('');
-    setLanguage('');
     setPriceRange([0, 10000]);
-    setSelectedDate('');
     setSortBy('createdAt');
     setOrderBy('desc');
     setPage(1);
-    setTimeout(() => fetchTours(), 0);
-
-
+    setTimeout(() => fetchProducts(), 0);
   };
 
-
-    console.log("from tour page",tours)
+  // Sort options
+  const sortOptions = [
+    { value: 'createdAt', label: 'Newest', order: 'desc' },
+    { value: 'price', label: 'Price: Low to High', order: 'asc' },
+    { value: 'price', label: 'Price: High to Low', order: 'desc' },
+    { value: 'averageRating', label: 'Rating: High to Low', order: 'desc' },
+    { value: 'name', label: 'Name: A to Z', order: 'asc' },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-linear-to-r from-blue-600 to-blue-800 text-white py-12">
+      <div className="bg-gradient-to-r from-primary/90 to-primary text-white py-16">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4">Discover Authentic Local Experiences</h1>
-          <p className="text-blue-100 text-lg mb-8">
-            Book unique tours with passionate local guides
-          </p>
-          
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-4 bg-white rounded-lg p-4 shadow-xl">
-              <div className="flex-1">
-                <div className="flex items-center mb-2">
-                  <Search className="ml-1 text-gray-400" size={18} />
-                  <label className="ml-2 text-sm text-gray-600">Search tours</label>
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Discover Amazing Products
+            </h1>
+            <p className="text-primary-foreground/80 text-lg mb-8">
+              Find exactly what you're looking for with our curated collection
+            </p>
+            
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search tour titles, descriptions..."
-                  className="w-full px-3 py-2 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Search products, brands, categories..."
+                  className="w-full pl-12 pr-24 py-4 rounded-xl text-gray-900 focus:outline-none focus:ring-3 focus:ring-primary/30 shadow-lg"
                 />
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center mb-2">
-                  <MapPin className="ml-1 text-gray-400" size={18} />
-                  <label className="ml-2 text-sm text-gray-600">City</label>
-                </div>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Enter city name"
-                  className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center mb-2">
-                  <Globe className="ml-1 text-gray-400" size={18} />
-                  <label className="ml-2 text-sm text-gray-600">Language</label>
-                </div>
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                >
-                  <option value="">All Languages</option>
-                  {languageOptions.map((lang) => (
-                    <option key={lang} value={lang}>{lang}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="flex items-end">
-                <button
+                <Button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition duration-300 h-[42px]"
+                  className="absolute right-2 top-2 bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2 rounded-lg"
                 >
                   Search
-                </button>
+                </Button>
+              </div>
+            </form>
+
+            {/* Features */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+              <div className="flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <Truck className="h-6 w-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold">Free Shipping</h3>
+                  <p className="text-sm text-primary-foreground/80">On orders over $50</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold">Secure Payment</h3>
+                  <p className="text-sm text-primary-foreground/80">100% protected</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <Star className="h-6 w-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold">Premium Quality</h3>
+                  <p className="text-sm text-primary-foreground/80">Verified products</p>
+                </div>
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </div>
 
@@ -315,113 +299,113 @@ function ExploreTourContent() {
             <div className="sticky top-8">
               <FilterSidebar
                 category={category}
-                setCategory={setCategory}
-                city={city}
-                setCity={setCity}
-                language={language}
-                setLanguage={setLanguage}
-                languageOptions={languageOptions}
+                categories={categories}
+                onCategoryChange={handleCategoryToggle}
                 priceRange={priceRange}
-                setPriceRange={setPriceRange}
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
+                onPriceChange={setPriceRange}
                 onApplyFilters={() => {
                   setPage(1);
-                  fetchTours();
+                  fetchProducts();
                 }}
                 onReset={handleResetFilters}
               />
             </div>
           </div>
 
-          {/* Tours List */}
+          {/* Products List */}
           <div className="lg:w-3/4">
             {/* Header with controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 p-4 bg-white rounded-xl shadow-sm">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {loading ? 'Loading...' : `Found ${totalTours} Tours`}
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {loading ? 'Loading...' : `${totalProducts} Products Found`}
                 </h2>
                 <p className="text-gray-600">
-                  Showing {tours.length} tours on this page
+                  Showing {products.length} products
                 </p>
               </div>
               
               <div className="flex items-center gap-4">
-                {/* Sort Options */}
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-600">Sort by:</label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                {/* View Mode Toggle */}
+                <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={cn(
+                      "p-2 rounded-md transition-colors",
+                      viewMode === 'grid' 
+                        ? 'bg-white text-primary shadow-sm' 
+                        : 'text-gray-600 hover:text-primary'
+                    )}
                   >
-                    <option value="createdAt">Newest</option>
-                    <option value="fee">Price</option>
-                    <option value="title">Title</option>
-                  </select>
-                  
-                  <select
-                    value={orderBy}
-                    onChange={(e) => setOrderBy(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    <Grid3X3 className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={cn(
+                      "p-2 rounded-md transition-colors",
+                      viewMode === 'list' 
+                        ? 'bg-white text-primary shadow-sm' 
+                        : 'text-gray-600 hover:text-primary'
+                    )}
                   >
-                    <option value="desc">Descending</option>
-                    <option value="asc">Ascending</option>
-                  </select>
+                    <List className="h-5 w-5" />
+                  </button>
                 </div>
 
-                {/* Map Toggle */}
-                <button
-                  onClick={() => setShowMap(!showMap)}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-                    showMap 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                {/* Sort Dropdown */}
+                <select
+                  value={`${sortBy}-${orderBy}`}
+                  onChange={(e) => {
+                    const [newSortBy, newOrderBy] = e.target.value.split('-');
+                    setSortBy(newSortBy as any);
+                    setOrderBy(newOrderBy as any);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white"
                 >
-                  <MapPin size={20} />
-                  {showMap ? 'List View' : 'Map View'}
-                </button>
+                  {sortOptions.map((option, index) => (
+                    <option key={index} value={`${option.value}-${option.order}`}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
             {/* Active Filters */}
-            {(category || city || language || priceRange[0] > 0 || priceRange[1] < 10000 || selectedDate) && (
-              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-blue-800">Active Filters:</h3>
+            {(searchTerm || category || priceRange[0] > 0 || priceRange[1] < 10000) && (
+              <div className="mb-6 p-4 bg-primary/5 rounded-xl border border-primary/20">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-primary">Active Filters:</h3>
                   <button
                     onClick={handleResetFilters}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="text-sm text-primary hover:text-primary/80 font-medium"
                   >
                     Clear All
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {searchTerm && (
+                    <span className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium flex items-center gap-1">
+                      Search: {searchTerm}
+                      <button onClick={() => setSearchTerm('')} className="ml-1 hover:text-primary/70">
+                        ×
+                      </button>
+                    </span>
+                  )}
                   {category && (
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                      Category: {category} ×
-                    </span>
-                  )}
-                  {city && (
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                      City: {city} ×
-                    </span>
-                  )}
-                  {language && (
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                      Language: {language} ×
+                    <span className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium flex items-center gap-1">
+                      Category: {categories.find(c => c.id === category)?.name}
+                      <button onClick={() => setCategory('')} className="ml-1 hover:text-primary/70">
+                        ×
+                      </button>
                     </span>
                   )}
                   {(priceRange[0] > 0 || priceRange[1] < 10000) && (
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                      Price: ${priceRange[0]} - ${priceRange[1]} ×
-                    </span>
-                  )}
-                  {selectedDate && (
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                      Date: {selectedDate} ×
+                    <span className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium flex items-center gap-1">
+                      Price: ${priceRange[0]} - ${priceRange[1]}
+                      <button onClick={() => setPriceRange([0, 10000])} className="ml-1 hover:text-primary/70">
+                        ×
+                      </button>
                     </span>
                   )}
                 </div>
@@ -430,52 +414,76 @@ function ExploreTourContent() {
 
             {/* Loading State */}
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(9)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden animate-pulse">
-                    <div className="h-48 bg-gray-300" />
-                    <div className="p-4 space-y-3">
-                      <div className="h-4 bg-gray-300 rounded w-3/4" />
-                      <div className="h-3 bg-gray-300 rounded w-1/2" />
-                      <div className="h-3 bg-gray-300 rounded w-1/4" />
+              <div className={cn(
+                "grid gap-6",
+                viewMode === 'grid' 
+                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" 
+                  : "grid-cols-1"
+              )}>
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className={cn(
+                    "bg-white rounded-xl shadow overflow-hidden animate-pulse",
+                    viewMode === 'list' && "flex"
+                  )}>
+                    <div className={cn(
+                      "bg-gray-300",
+                      viewMode === 'grid' ? "h-56" : "w-48 h-48"
+                    )} />
+                    <div className="p-4 flex-1">
+                      <div className="h-5 bg-gray-300 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-gray-300 rounded w-1/2 mb-3"></div>
+                      <div className="h-6 bg-gray-300 rounded w-1/4"></div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <>
-                {/* Tours Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {tours.map((tour) => (
-                    <TourCard key={tour.id} tour={tour} />
+                {/* Products Grid/List */}
+                <div className={cn(
+                  "grid gap-6",
+                  viewMode === 'grid' 
+                    ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" 
+                    : "grid-cols-1"
+                )}>
+                  {products.map((product) => (
+                    <ProductCard
+                      key={product.id} 
+                      product={product} 
+                      viewMode={viewMode}
+                    />
                   ))}
                 </div>
 
                 {/* No Results */}
-                {tours.length === 0 && (
-                  <div className="text-center py-12">
-                    <Search size={64} className="mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                      No tours found
+                {products.length === 0 && !loading && (
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Search className="h-12 w-12 text-primary" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      No products found
                     </h3>
-                    <p className="text-gray-500 mb-6">
-                      Try adjusting your search or filters
+                    <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                      Try adjusting your search or filters to find what you're looking for
                     </p>
-                    <button
+                    <Button
                       onClick={handleResetFilters}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+                      className="bg-primary hover:bg-primary/90"
                     >
                       Reset All Filters
-                    </button>
+                    </Button>
                   </div>
                 )}
 
                 {/* Pagination */}
-                {totalTours > 0 && totalPages > 1 && (
-                  <div className="mt-8">
+                {totalProducts > 0 && totalPages > 1 && (
+                  <div className="mt-12">
                     <Pagination
                       currentPage={page}
                       totalPages={totalPages}
+                      totalItems={totalProducts}
+                      itemsPerPage={12}
                       onPageChange={setPage}
                     />
                   </div>
@@ -490,10 +498,10 @@ function ExploreTourContent() {
 }
 
 // Main component with Suspense
-export default function ExploreTour() {
+export default function ProductsPage() {
   return (
-    <Suspense fallback={<ExploreTourLoading />}>
-      <ExploreTourContent />
+    <Suspense fallback={<ProductsLoading />}>
+      <ProductsContent />
     </Suspense>
   );
 }
