@@ -39,7 +39,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         "relative overflow-hidden bg-gray-100",
         viewMode === 'grid' ? "h-56" : "w-64 h-64"
       )}>
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/products/${product.slug}`}>
           <Image
             src={mainImage}
             alt={product.name}

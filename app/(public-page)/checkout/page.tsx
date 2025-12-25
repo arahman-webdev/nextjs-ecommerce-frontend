@@ -1,4 +1,3 @@
-// app/checkout/page.tsx
 'use client';
 
 import { useState, useContext, useEffect } from 'react';
@@ -30,10 +29,13 @@ import {
   Clock,
   ChevronRight,
   ChevronLeft,
-  Heart
+  Heart,
+  Loader2,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 type CheckoutStep = 'cart' | 'shipping' | 'payment' | 'review';
 
@@ -44,6 +46,9 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [paymentUrl, setPaymentUrl] = useState('');
+
+
 
   // Form States
   const [shippingInfo, setShippingInfo] = useState({
@@ -56,38 +61,21 @@ export default function CheckoutPage() {
     city: '',
     state: '',
     zipCode: '',
-    country: 'United States',
+    country: 'Bangladesh',
   });
 
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
-  const [billingInfo, setBillingInfo] = useState({
-    firstName: '',
-    lastName: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: 'United States',
-  });
-
-  const [paymentMethod, setPaymentMethod] = useState('credit-card');
-  const [cardInfo, setCardInfo] = useState({
-    cardNumber: '',
-    cardName: '',
-    expiryDate: '',
-    cvv: '',
-  });
-
+  const [paymentMethod, setPaymentMethod] = useState('ssl_commerz'); // Changed default to ssl_commerz
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [orderNotes, setOrderNotes] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
 
-  // Shipping Options
+  // Shipping Options for Bangladesh
   const shippingOptions = [
-    { id: 'standard', name: 'Standard Shipping', price: 5.99, days: '5-7 business days' },
-    { id: 'express', name: 'Express Shipping', price: 12.99, days: '2-3 business days' },
-    { id: 'overnight', name: 'Overnight Shipping', price: 24.99, days: 'Next business day' },
+    { id: 'standard', name: 'Standard Delivery', price: 60, days: '5-7 business days' },
+    { id: 'express', name: 'Express Delivery', price: 120, days: '2-3 business days' },
+    { id: 'overnight', name: 'Overnight Delivery', price: 250, days: 'Next business day' },
   ];
 
   const selectedShipping = shippingOptions.find(opt => opt.id === shippingMethod) || shippingOptions[0];
@@ -105,24 +93,19 @@ export default function CheckoutPage() {
 
   const { cartItems, clearCart } = cartContext;
 
-  // Redirect if cart is empty
-  useEffect(() => {
-    if (cartItems.length === 0 && currentStep === 'cart') {
-      router.push('/cart');
-    }
-  }, [cartItems, currentStep, router]);
+
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shippingCost = selectedShipping.price;
-  const tax = subtotal * 0.08; // 8% tax
+  const tax = subtotal * 0.05; // 5% VAT for Bangladesh
   const total = subtotal + shippingCost + tax;
 
   // Format price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-BD', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'BDT',
       minimumFractionDigits: 2
     }).format(price);
   };
@@ -176,34 +159,137 @@ export default function CheckoutPage() {
 
   // Validate payment info
   const validatePaymentInfo = () => {
-    if (paymentMethod === 'credit-card') {
-      return cardInfo.cardNumber && cardInfo.cardName && cardInfo.expiryDate && cardInfo.cvv;
-    }
-    return true; // Other payment methods might have different validation
+    // SSL Commerz doesn't require card info upfront
+    return true;
   };
 
-  // Handle place order
-  const handlePlaceOrder = async () => {
-    if (!acceptTerms) {
-      toast.error('Please accept the terms and conditions');
+  // Get user ID from token
+  const getUserIdFromToken = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+      // Decode JWT token to get user ID (if you're using JWT)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.id || payload.userId;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  };
+
+  
+// Handle place order
+const handlePlaceOrder = async () => {
+  if (!acceptTerms) {
+    toast.error('Please accept the terms and conditions');
+    return;
+  }
+
+  setIsProcessing(true);
+
+  try {
+    // Get user ID and token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please login again');
+      router.push('/login');
       return;
     }
 
-    setIsProcessing(true);
+    // Get user info from localStorage
+    const userStr = localStorage.getItem('user');
+    let user = null;
+    if (userStr) {
+      try {
+        user = JSON.parse(userStr);
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
 
-    // Simulate API call
-    setTimeout(() => {
-      const newOrderId = 'ORD-' + Date.now().toString().slice(-8);
-      setOrderId(newOrderId);
-      setOrderComplete(true);
-      setIsProcessing(false);
-      clearCart();
+    // Prepare order data matching your backend schema
+    const orderData = {
+      shippingAddressId: null, // You'll need to create address first or send address data
+      billingAddressId: null,
+      shippingMethod: shippingMethod.toUpperCase(), // 'STANDARD', 'EXPRESS', 'OVERNIGHT'
+      paymentMethod: paymentMethod === 'ssl_commerz' ? 'SSL_COMMERZ' : 'CASH_ON_DELIVERY',
+      customerNotes: orderNotes,
+      // Cart items will be automatically taken from user's cart
+    };
+
+    console.log('Sending order data:', orderData);
+    console.log('Token:', token.substring(0, 20) + '...');
+
+    // Call your backend API - FIXED URL
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/payment/create-order`,
+      orderData,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000, // 30 seconds timeout
+      }
+    );
+
+    console.log('Backend response:', response.data);
+
+    if (response.data.success) {
+      const { order, payment } = response.data.data;
       
-      toast.success('Order placed successfully!', {
-        description: `Your order #${newOrderId} has been confirmed.`
+      setOrderId(order.id);
+      setOrderComplete(true);
+      
+      // If payment URL is returned, redirect to payment page
+      if (payment?.paymentUrl) {
+        setPaymentUrl(payment.paymentUrl);
+        // Show message before redirecting
+        toast.success('Redirecting to payment gateway...');
+        // Small delay to show toast
+        setTimeout(() => {
+          window.location.href = payment.paymentUrl;
+        }, 1000);
+      } else {
+        // For Cash on Delivery
+        toast.success('Order placed successfully!', {
+          description: `Your order #${order.orderNumber} has been confirmed.`
+        });
+        clearCart();
+      }
+    } else {
+      toast.error(response.data.message || 'Failed to create order');
+    }
+
+  } catch (error: any) {
+    console.error('Order creation failed:', error);
+    
+    // Detailed error logging
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+      console.error('Error response headers:', error.response.headers);
+      
+      toast.error('Failed to place order', {
+        description: error.response.data?.message || 
+                    error.response.data?.error || 
+                    `Status: ${error.response.status}`
       });
-    }, 2000);
-  };
+    } else if (error.request) {
+      console.error('Error request:', error.request);
+      toast.error('Network error', {
+        description: 'Cannot connect to server. Please check your connection.'
+      });
+    } else {
+      toast.error('Error', {
+        description: error.message || 'Something went wrong'
+      });
+    }
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   // Steps configuration
   const steps = [
@@ -213,8 +299,59 @@ export default function CheckoutPage() {
     { id: 'review', name: 'Review', icon: CheckCircle },
   ];
 
-  // If order is complete
-  if (orderComplete) {
+  // If order is complete and waiting for payment
+  if (orderComplete && paymentUrl) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary/5 to-white">
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CreditCard className="h-16 w-16 text-blue-600" />
+            </div>
+            
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Redirecting to Payment
+            </h1>
+            
+            <p className="text-gray-600 text-lg mb-6">
+              Please wait while we redirect you to the secure payment gateway.
+            </p>
+            
+            <div className="bg-white rounded-xl p-6 shadow-lg mb-8">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Order Total</span>
+                  <span className="text-2xl font-bold text-primary">{formatPrice(total)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Payment Method</span>
+                  <span className="font-medium text-gray-900">SSL Commerz</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+              <p className="text-gray-500">Redirecting to secure payment...</p>
+              
+              <div className="mt-4">
+                <Button 
+                  onClick={() => window.location.href = paymentUrl}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Click here if not redirected
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If order is complete (for COD)
+  if (orderComplete && !paymentUrl) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary/5 to-white">
         <div className="container mx-auto px-4 py-16">
@@ -251,9 +388,7 @@ export default function CheckoutPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Payment Method</span>
                     <span className="font-medium text-gray-900">
-                      {paymentMethod === 'credit-card' ? 'Credit Card' : 
-                       paymentMethod === 'paypal' ? 'PayPal' : 
-                       'Cash on Delivery'}
+                      {paymentMethod === 'ssl_commerz' ? 'SSL Commerz' : 'Cash on Delivery'}
                     </span>
                   </div>
                 </div>
@@ -273,33 +408,6 @@ export default function CheckoutPage() {
                     Continue Shopping
                   </Button>
                 </Link>
-              </div>
-              
-              <div className="mt-12 pt-8 border-t">
-                <h3 className="font-bold text-gray-900 mb-4">What happens next?</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Package className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <h4 className="font-medium text-gray-900">Order Processing</h4>
-                    <p className="text-sm text-gray-600">We're preparing your order</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Truck className="h-6 w-6 text-green-600" />
-                    </div>
-                    <h4 className="font-medium text-gray-900">Shipping</h4>
-                    <p className="text-sm text-gray-600">Your order is on the way</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Home className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <h4 className="font-medium text-gray-900">Delivery</h4>
-                    <p className="text-sm text-gray-600">Your order arrives</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -546,7 +654,7 @@ export default function CheckoutPage() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="state">State *</Label>
+                    <Label htmlFor="state">State/Division *</Label>
                     <Input
                       id="state"
                       value={shippingInfo.state}
@@ -574,6 +682,7 @@ export default function CheckoutPage() {
                       value={shippingInfo.country}
                       onChange={(e) => setShippingInfo({...shippingInfo, country: e.target.value})}
                       className="mt-1"
+                      disabled
                     />
                   </div>
                 </div>
@@ -633,59 +742,6 @@ export default function CheckoutPage() {
                       Billing address is the same as shipping address
                     </Label>
                   </div>
-                  
-                  {!billingSameAsShipping && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                      <div>
-                        <Label>Billing First Name</Label>
-                        <Input
-                          value={billingInfo.firstName}
-                          onChange={(e) => setBillingInfo({...billingInfo, firstName: e.target.value})}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label>Billing Last Name</Label>
-                        <Input
-                          value={billingInfo.lastName}
-                          onChange={(e) => setBillingInfo({...billingInfo, lastName: e.target.value})}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Billing Address</Label>
-                        <Input
-                          value={billingInfo.address}
-                          onChange={(e) => setBillingInfo({...billingInfo, address: e.target.value})}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label>Billing City</Label>
-                        <Input
-                          value={billingInfo.city}
-                          onChange={(e) => setBillingInfo({...billingInfo, city: e.target.value})}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label>Billing State</Label>
-                        <Input
-                          value={billingInfo.state}
-                          onChange={(e) => setBillingInfo({...billingInfo, state: e.target.value})}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label>Billing ZIP Code</Label>
-                        <Input
-                          value={billingInfo.zipCode}
-                          onChange={(e) => setBillingInfo({...billingInfo, zipCode: e.target.value})}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -702,110 +758,48 @@ export default function CheckoutPage() {
                   <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Method</h3>
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
                     <div className="flex items-center gap-3 p-4 border rounded-lg">
-                      <RadioGroupItem value="credit-card" id="credit-card" />
-                      <Label htmlFor="credit-card" className="flex-1 cursor-pointer">
+                      <RadioGroupItem value="ssl_commerz" id="ssl_commerz" />
+                      <Label htmlFor="ssl_commerz" className="flex-1 cursor-pointer">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">Credit / Debit Card</span>
+                          <span className="font-medium">SSL Commerz (Online Payment)</span>
                           <div className="flex items-center gap-2">
                             <div className="text-xs bg-gray-100 px-2 py-1 rounded">Visa</div>
                             <div className="text-xs bg-gray-100 px-2 py-1 rounded">Mastercard</div>
-                            <div className="text-xs bg-gray-100 px-2 py-1 rounded">Amex</div>
+                            <div className="text-xs bg-gray-100 px-2 py-1 rounded">Mobile Banking</div>
                           </div>
                         </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Secure payment with SSL Commerz gateway
+                        </p>
                       </Label>
                     </div>
                     
                     <div className="flex items-center gap-3 p-4 border rounded-lg">
-                      <RadioGroupItem value="paypal" id="paypal" />
-                      <Label htmlFor="paypal" className="flex-1 cursor-pointer">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">PayPal</span>
-                          <span className="text-xs text-gray-600">Secured by PayPal</span>
-                        </div>
-                      </Label>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 p-4 border rounded-lg">
-                      <RadioGroupItem value="cod" id="cod" />
-                      <Label htmlFor="cod" className="flex-1 cursor-pointer">
+                      <RadioGroupItem value="cash_on_delivery" id="cash_on_delivery" />
+                      <Label htmlFor="cash_on_delivery" className="flex-1 cursor-pointer">
                         <div className="flex items-center justify-between">
                           <span className="font-medium">Cash on Delivery</span>
                           <span className="text-xs text-gray-600">Pay when you receive</span>
                         </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Pay with cash when your order is delivered
+                        </p>
                       </Label>
                     </div>
                   </RadioGroup>
                 </div>
 
-                {/* Credit Card Form */}
-                {paymentMethod === 'credit-card' && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="cardNumber">Card Number *</Label>
-                      <Input
-                        id="cardNumber"
-                        value={cardInfo.cardNumber}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          const formatted = value.replace(/(\d{4})/g, '$1 ').trim();
-                          if (value.length <= 16) {
-                            setCardInfo({...cardInfo, cardNumber: formatted});
-                          }
-                        }}
-                        placeholder="1234 5678 9012 3456"
-                        className="mt-1"
-                        maxLength={19}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="cardName">Name on Card *</Label>
-                      <Input
-                        id="cardName"
-                        value={cardInfo.cardName}
-                        onChange={(e) => setCardInfo({...cardInfo, cardName: e.target.value})}
-                        placeholder="John Doe"
-                        className="mt-1"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
+                {/* SSL Commerz Notice */}
+                {paymentMethod === 'ssl_commerz' && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-start gap-3">
+                      <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
                       <div>
-                        <Label htmlFor="expiryDate">Expiry Date *</Label>
-                        <Input
-                          id="expiryDate"
-                          value={cardInfo.expiryDate}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            const formatted = value.length > 2 
-                              ? value.slice(0,2) + '/' + value.slice(2,4)
-                              : value;
-                            if (value.length <= 4) {
-                              setCardInfo({...cardInfo, expiryDate: formatted});
-                            }
-                          }}
-                          placeholder="MM/YY"
-                          className="mt-1"
-                          maxLength={5}
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="cvv">CVV *</Label>
-                        <Input
-                          id="cvv"
-                          type="password"
-                          value={cardInfo.cvv}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            if (value.length <= 3) {
-                              setCardInfo({...cardInfo, cvv: value});
-                            }
-                          }}
-                          placeholder="123"
-                          className="mt-1"
-                          maxLength={3}
-                        />
+                        <h4 className="font-medium text-blue-900 mb-1">Secure Payment Gateway</h4>
+                        <p className="text-sm text-blue-700">
+                          You will be redirected to SSL Commerz secure payment page. 
+                          Your payment information is encrypted and secure.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -891,15 +885,13 @@ export default function CheckoutPage() {
                   </h3>
                   <div className="bg-gray-50 rounded-lg p-4">
                     <p className="font-medium text-gray-900">
-                      {paymentMethod === 'credit-card' ? 'Credit Card' : 
-                       paymentMethod === 'paypal' ? 'PayPal' : 
-                       'Cash on Delivery'}
+                      {paymentMethod === 'ssl_commerz' ? 'SSL Commerz Online Payment' : 'Cash on Delivery'}
                     </p>
-                    {paymentMethod === 'credit-card' && (
-                      <p className="text-gray-600">
-                        Card ending in {cardInfo.cardNumber.slice(-4)}
-                      </p>
-                    )}
+                    <p className="text-gray-600">
+                      {paymentMethod === 'ssl_commerz' 
+                        ? 'You will be redirected to secure payment page' 
+                        : 'Pay with cash when your order arrives'}
+                    </p>
                   </div>
                 </div>
 
@@ -953,7 +945,7 @@ export default function CheckoutPage() {
               >
                 {isProcessing ? (
                   <>
-                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Processing...
                   </>
                 ) : currentStep === 'review' ? (
@@ -1010,7 +1002,7 @@ export default function CheckoutPage() {
                     </div>
                     
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Estimated Tax</span>
+                      <span className="text-gray-600">VAT (5%)</span>
                       <span className="font-medium">{formatPrice(tax)}</span>
                     </div>
                   </div>
@@ -1024,18 +1016,9 @@ export default function CheckoutPage() {
                       <div className="text-2xl font-bold text-primary">
                         {formatPrice(total)}
                       </div>
-                      <p className="text-sm text-gray-500">USD</p>
+                      <p className="text-sm text-gray-500">BDT</p>
                     </div>
                   </div>
-
-                  {/* Save Message */}
-                  {total > 100 && (
-                    <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                      <p className="text-sm text-green-800 font-medium">
-                        🎉 You saved on shipping! Orders over $100 ship free.
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
 

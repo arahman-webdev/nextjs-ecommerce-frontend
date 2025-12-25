@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
-import ExploreTour from '@/components/Public/ExploreProducts';
+
+import ProductsPage from '@/components/Public/ExploreProducts';
 import { Metadata } from 'next';
 
 
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 export default function ProductPage() {
   return (
     <div className=''>
-        <ExploreTour />
+        <ProductsPage />
     </div>
   )
 }
