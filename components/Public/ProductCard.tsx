@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, ShoppingBag, Heart, Eye, Check } from 'lucide-react';
+import { Star, ShoppingBag, Heart, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AddToCart } from '@/components/SharedComponent/AddToCart';
@@ -15,8 +15,6 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
-  const [isSpinner, setIsSpinner] = useState(false);
-
   const mainImage = product.productImages?.[0]?.imageUrl || '/api/placeholder/400/400';
   const averageRating = product.averageRating || 0;
   const reviewCount = product.reviewCount || 0;
@@ -25,12 +23,8 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null;
 
-  const handleAddToCart = async () => {
-    setIsSpinner(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setIsSpinner(false);
-  };
+  // REMOVE the isSpinner state and handleAddToCart function
+  // They're not needed since AddToCart handles its own state
 
   console.log("from product card ", product)
 
@@ -166,18 +160,16 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
             </p>
           </div>
 
+          {/* SIMPLIFIED: Just pass the product, no spinner prop */}
           <AddToCart
             product={{
               id: product.id,
               name: product.name,
               price: product.price,
               productImages: product.productImages,
-              stock: product.stock,
+              
             }}
-            onclick={handleAddToCart}
-            isSpinner={isSpinner}
           />
-
         </div>
       </div>
     </div>
