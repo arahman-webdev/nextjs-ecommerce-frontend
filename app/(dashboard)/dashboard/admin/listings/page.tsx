@@ -1,0 +1,64 @@
+
+import ManageProductListingTable from '@/components/Dahsboard/Admin/ManageProductListingTable';
+import { Metadata } from 'next';
+import { unstable_noStore as noStore } from 'next/cache';
+
+export const metadata:Metadata ={
+    title: 'Manage Tours | Admin Panel | LocalGuide',
+  description: 'Admin dashboard for managing all tours. Approve, edit, delete, and monitor tour listings. Quality control and content management.',
+}
+
+export default async function AdminLisingPage() {
+
+noStore()
+
+  try {
+    
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product`, {
+      method: "GET",
+      cache: "no-store",
+    })
+
+
+    if (res.status === 401) {
+      // Token expired
+      return (
+        <div className="p-8">
+          <h2>Session Expired</h2>
+          <p>Your session has expired. Please log in again.</p>
+          <a href="/login">Login Again</a>
+        </div>
+      )
+    }
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch users: ${res.status}`)
+    }
+
+    const result = await res.json()
+
+   
+
+    const data = result?.data
+
+    console.log("tour listings", data)
+    
+    if (!result.success) {
+      throw new Error(result.message)
+    }
+
+    return <ManageProductListingTable products={data} />
+
+  } catch (error:any) {
+    console.error("Error:", error)
+    return (
+      <div className="p-8">
+        <h2>Error Loading Users</h2>
+        <p>{error.message}</p>
+      </div>
+    )
+  }
+
+
+ 
+}

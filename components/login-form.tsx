@@ -96,7 +96,7 @@ function LoginFormContent() {
 
   const demoCredentials = {
     admin: {
-      email: "abrahman@gmail.com",
+      email: "arahman.admin@gmail.com",
       password: "admin_password",
     },
     tourist: {

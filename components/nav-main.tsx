@@ -10,6 +10,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function NavMain({
   items,
@@ -18,8 +20,11 @@ export function NavMain({
     title: string
     url: string
     icon?: Icon
+    role?: string
   }[]
 }) {
+
+  const pathName = usePathname()
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -27,28 +32,24 @@ export function NavMain({
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
               tooltip="Quick Create"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+              className=" text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
-              <IconCirclePlusFilled />
-              <span>Quick Create</span>
+
+              <span className="text-[#BDC7D3] ml-3">MAIN HOME</span>
             </SidebarMenuButton>
-            <Button
-              size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-            >
-              <IconMail />
-              <span className="sr-only">Inbox</span>
-            </Button>
+
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
+              <Link href={item.url}>
+                <SidebarMenuButton tooltip={item.title} className={`hover:bg-[#EAF1FF] ${pathName === item.url? "bg-[#EAF1FF] text-[#2275fc]":"text-black"}  hover:text-[#2275fc] font-semibold text-md p-5 cursor-pointer`}>
+                  {item.icon && <item.icon />}
+                  {item.title}
+                </SidebarMenuButton>
+              </Link>
+
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -56,3 +57,5 @@ export function NavMain({
     </SidebarGroup>
   )
 }
+
+//text-[#2275fc]
