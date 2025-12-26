@@ -11,14 +11,14 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  ArrowLeft, 
-  ShoppingBag, 
-  CreditCard, 
-  Truck, 
-  CheckCircle, 
-  Shield, 
-  Lock, 
+import {
+  ArrowLeft,
+  ShoppingBag,
+  CreditCard,
+  Truck,
+  CheckCircle,
+  Shield,
+  Lock,
   MapPin,
   User,
   Mail,
@@ -35,7 +35,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import axios from 'axios';
 
 type CheckoutStep = 'cart' | 'shipping' | 'payment' | 'review';
 
@@ -47,8 +46,6 @@ export default function CheckoutPage() {
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [paymentUrl, setPaymentUrl] = useState('');
-
-
 
   // Form States
   const [shippingInfo, setShippingInfo] = useState({
@@ -65,7 +62,7 @@ export default function CheckoutPage() {
   });
 
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState('ssl_commerz'); // Changed default to ssl_commerz
+  const [paymentMethod, setPaymentMethod] = useState('ssl_commerz');
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [orderNotes, setOrderNotes] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -93,12 +90,10 @@ export default function CheckoutPage() {
 
   const { cartItems, clearCart } = cartContext;
 
-
-
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shippingCost = selectedShipping.price;
-  const tax = subtotal * 0.05; // 5% VAT for Bangladesh
+  const tax = subtotal * 0.05;
   const total = subtotal + shippingCost + tax;
 
   // Format price
@@ -159,137 +154,130 @@ export default function CheckoutPage() {
 
   // Validate payment info
   const validatePaymentInfo = () => {
-    // SSL Commerz doesn't require card info upfront
     return true;
   };
 
-  // Get user ID from token
-  const getUserIdFromToken = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
-    
-    try {
-      // Decode JWT token to get user ID (if you're using JWT)
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.id || payload.userId;
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
-    }
-  };
-
-  
-// Handle place order
-const handlePlaceOrder = async () => {
-  if (!acceptTerms) {
-    toast.error('Please accept the terms and conditions');
-    return;
-  }
-
-  setIsProcessing(true);
-
-  try {
-    // Get user ID and token
-    const token = localStorage.getItem('token');
-    if (!token) {
-      toast.error('Please login again');
-      router.push('/login');
+  // Handle place order - UPDATED VERSION
+  const handlePlaceOrder = async () => {
+    if (!acceptTerms) {
+      toast.error('Please accept the terms and conditions');
       return;
     }
 
-    // Get user info from localStorage
-    const userStr = localStorage.getItem('user');
-    let user = null;
-    if (userStr) {
-      try {
-        user = JSON.parse(userStr);
-      } catch (e) {
-        console.error('Error parsing user from localStorage:', e);
+    setIsProcessing(true);
+
+    try {
+      // Get user ID and token
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('Please login again');
+        router.push('/login');
+        return;
       }
-    }
 
-    // Prepare order data matching your backend schema
-    const orderData = {
-      shippingAddressId: null, // You'll need to create address first or send address data
-      billingAddressId: null,
-      shippingMethod: shippingMethod.toUpperCase(), // 'STANDARD', 'EXPRESS', 'OVERNIGHT'
-      paymentMethod: paymentMethod === 'ssl_commerz' ? 'SSL_COMMERZ' : 'CASH_ON_DELIVERY',
-      customerNotes: orderNotes,
-      // Cart items will be automatically taken from user's cart
-    };
+      // Get user info from localStorage
+      const userStr = localStorage.getItem('user');
+      let user = null;
 
-    console.log('Sending order data:', orderData);
-    console.log('Token:', token.substring(0, 20) + '...');
-
-    // Call your backend API - FIXED URL
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/payment/create-order`,
-      orderData,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 30000, // 30 seconds timeout
+      if (userStr) {
+        try {
+          user = JSON.parse(userStr);
+        } catch (e) {
+          console.error('Error parsing user from localStorage:', e);
+        }
       }
-    );
 
-    console.log('Backend response:', response.data);
+      // IMPORTANT: Send cart items in the request
+      // Prepare order data with cart items
+      const orderData = {
+        shippingAddressId: null,
+        billingAddressId: null,
+        shippingMethod: shippingMethod.toUpperCase(),
+        paymentMethod: paymentMethod === 'ssl_commerz' ? 'SSL_COMMERZ' : 'CASH_ON_DELIVERY',
+        customerNotes: orderNotes,
+        // Send cart items so backend doesn't need to look in database
+        items: cartItems.map(item => ({
+          productId: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          imageUrl: item.productImages?.[0]?.imageUrl || ''
+        })),
+        // Send totals for verification
+        totals: {
+          subtotal,
+          shipping: shippingCost,
+          tax,
+          total
+        }
+      };
 
-    if (response.data.success) {
-      const { order, payment } = response.data.data;
-      
-      setOrderId(order.id);
-      setOrderComplete(true);
-      
-      // If payment URL is returned, redirect to payment page
-      if (payment?.paymentUrl) {
-        setPaymentUrl(payment.paymentUrl);
-        // Show message before redirecting
-        toast.success('Redirecting to payment gateway...');
-        // Small delay to show toast
-        setTimeout(() => {
-          window.location.href = payment.paymentUrl;
-        }, 1000);
+      console.log('Sending order data WITH CART ITEMS:', {
+        ...orderData,
+        itemsCount: orderData.items.length
+      });
+
+      // Call your backend API
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/payment/create-order`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(orderData),
+        }
+      );
+
+      const responseData = await response.json();
+      console.log('Backend response:', responseData);
+
+      if (!response.ok) {
+        throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      if (responseData.success) {
+        const { order, payment } = responseData.data;
+
+        setOrderId(order.id || order.orderNumber);
+        setOrderComplete(true);
+
+        // If payment URL is returned, redirect to payment page
+        if (payment?.paymentUrl) {
+          setPaymentUrl(payment.paymentUrl);
+          toast.success('Redirecting to payment gateway...');
+          setTimeout(() => {
+            window.location.href = payment.paymentUrl;
+          }, 1000);
+          clearCart();
+        } else {
+          toast.success('Order placed successfully!', {
+            description: `Your order #${order.orderNumber} has been confirmed.`
+          });
+
+        }
       } else {
-        // For Cash on Delivery
-        toast.success('Order placed successfully!', {
-          description: `Your order #${order.orderNumber} has been confirmed.`
-        });
-        clearCart();
+        toast.error(responseData.message || 'Failed to create order');
       }
-    } else {
-      toast.error(response.data.message || 'Failed to create order');
-    }
 
-  } catch (error: any) {
-    console.error('Order creation failed:', error);
-    
-    // Detailed error logging
-    if (error.response) {
-      console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
-      console.error('Error response headers:', error.response.headers);
-      
-      toast.error('Failed to place order', {
-        description: error.response.data?.message || 
-                    error.response.data?.error || 
-                    `Status: ${error.response.status}`
-      });
-    } else if (error.request) {
-      console.error('Error request:', error.request);
-      toast.error('Network error', {
-        description: 'Cannot connect to server. Please check your connection.'
-      });
-    } else {
-      toast.error('Error', {
-        description: error.message || 'Something went wrong'
-      });
+    } catch (error: any) {
+      console.error('Order creation failed:', error);
+
+      // More specific error messages
+      if (error.message.includes('Cart is empty')) {
+        toast.error('Cart sync issue', {
+          description: 'Your cart exists here but not on server. Please add items to cart again.'
+        });
+      } else {
+        toast.error('Order failed', {
+          description: error.message || 'Please try again'
+        });
+      }
+    } finally {
+      setIsProcessing(false);
     }
-  } finally {
-    setIsProcessing(false);
-  }
-};
+  };
 
   // Steps configuration
   const steps = [
@@ -308,15 +296,15 @@ const handlePlaceOrder = async () => {
             <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CreditCard className="h-16 w-16 text-blue-600" />
             </div>
-            
+
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
               Redirecting to Payment
             </h1>
-            
+
             <p className="text-gray-600 text-lg mb-6">
               Please wait while we redirect you to the secure payment gateway.
             </p>
-            
+
             <div className="bg-white rounded-xl p-6 shadow-lg mb-8">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -329,13 +317,13 @@ const handlePlaceOrder = async () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-col items-center gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
               <p className="text-gray-500">Redirecting to secure payment...</p>
-              
+
               <div className="mt-4">
-                <Button 
+                <Button
                   onClick={() => window.location.href = paymentUrl}
                   className="bg-primary hover:bg-primary/90"
                 >
@@ -360,19 +348,19 @@ const handlePlaceOrder = async () => {
               <div className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="h-16 w-16 text-green-600" />
               </div>
-              
+
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
                 Order Confirmed!
               </h1>
-              
+
               <p className="text-gray-600 text-lg mb-2">
                 Thank you for your purchase
               </p>
-              
+
               <p className="text-primary font-bold text-xl mb-8">
                 Order #{orderId}
               </p>
-              
+
               <div className="bg-white rounded-xl p-6 shadow-lg mb-8">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
@@ -393,7 +381,7 @@ const handlePlaceOrder = async () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/orders">
                   <Button size="lg" className="bg-primary hover:bg-primary/90 px-8">
@@ -401,7 +389,7 @@ const handlePlaceOrder = async () => {
                     View Order Details
                   </Button>
                 </Link>
-                
+
                 <Link href="/products">
                   <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10">
                     <ShoppingBag className="h-5 w-5 mr-2" />
@@ -444,27 +432,27 @@ const handlePlaceOrder = async () => {
               <ShoppingBag className="h-6 w-6" />
               <span className="text-xl">ShopCart</span>
             </Link>
-            
+
             <div className="hidden md:flex items-center gap-8">
               {steps.map((step, index) => (
                 <div key={step.id} className="flex items-center gap-2">
                   <div className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center",
-                    currentStep === step.id 
-                      ? "bg-primary text-white" 
+                    currentStep === step.id
+                      ? "bg-primary text-white"
                       : index < steps.findIndex(s => s.id === currentStep)
-                      ? "bg-green-100 text-green-600"
-                      : "bg-gray-100 text-gray-400"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-gray-100 text-gray-400"
                   )}>
                     <step.icon className="h-4 w-4" />
                   </div>
                   <span className={cn(
                     "text-sm font-medium",
-                    currentStep === step.id 
-                      ? "text-primary" 
+                    currentStep === step.id
+                      ? "text-primary"
                       : index < steps.findIndex(s => s.id === currentStep)
-                      ? "text-green-600"
-                      : "text-gray-400"
+                        ? "text-green-600"
+                        : "text-gray-400"
                   )}>
                     {step.name}
                   </span>
@@ -474,7 +462,7 @@ const handlePlaceOrder = async () => {
                 </div>
               ))}
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
               <span className="text-sm font-medium text-gray-600">Secure Checkout</span>
@@ -498,14 +486,14 @@ const handlePlaceOrder = async () => {
                   <ChevronLeft className="h-4 w-4" />
                   Back
                 </button>
-                
+
                 <div className="text-center">
                   <span className="text-sm text-gray-500">Step</span>
                   <div className="font-bold text-primary">
                     {steps.findIndex(s => s.id === currentStep) + 1} of {steps.length}
                   </div>
                 </div>
-                
+
                 <button
                   onClick={handleNextStep}
                   className="flex items-center gap-2 text-primary font-medium"
@@ -514,12 +502,12 @@ const handlePlaceOrder = async () => {
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
-              
+
               <div className="h-2 bg-gray-200 rounded-full mt-4">
-                <div 
+                <div
                   className="h-full bg-primary rounded-full transition-all duration-300"
-                  style={{ 
-                    width: `${(steps.findIndex(s => s.id === currentStep) + 1) / steps.length * 100}%` 
+                  style={{
+                    width: `${(steps.findIndex(s => s.id === currentStep) + 1) / steps.length * 100}%`
                   }}
                 />
               </div>
@@ -529,18 +517,18 @@ const handlePlaceOrder = async () => {
             {currentStep === 'cart' && (
               <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Review Your Cart</h2>
-                
+
                 <div className="space-y-4">
                   {cartItems.map((item) => (
                     <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
                       <div className="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0">
-                        <img 
-                          src={item.productImages?.[0]?.imageUrl || '/api/placeholder/80/80'} 
+                        <img
+                          src={item.productImages?.[0]?.imageUrl || '/api/placeholder/80/80'}
                           alt={item.name}
                           className="w-full h-full object-cover rounded-lg"
                         />
                       </div>
-                      
+
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{item.name}</h3>
                         <div className="flex items-center justify-between mt-2">
@@ -555,7 +543,7 @@ const handlePlaceOrder = async () => {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="mt-6 pt-6 border-t">
                   <Link href="/cart">
                     <Button variant="outline" className="w-full border-primary text-primary">
@@ -573,114 +561,114 @@ const handlePlaceOrder = async () => {
                   <MapPin className="h-6 w-6 text-primary" />
                   Shipping Information
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
                     <Label htmlFor="firstName">First Name *</Label>
                     <Input
                       id="firstName"
                       value={shippingInfo.firstName}
-                      onChange={(e) => setShippingInfo({...shippingInfo, firstName: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, firstName: e.target.value })}
                       className="mt-1"
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="lastName">Last Name *</Label>
                     <Input
                       id="lastName"
                       value={shippingInfo.lastName}
-                      onChange={(e) => setShippingInfo({...shippingInfo, lastName: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, lastName: e.target.value })}
                       className="mt-1"
                       required
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <Label htmlFor="email">Email Address *</Label>
                     <Input
                       id="email"
                       type="email"
                       value={shippingInfo.email}
-                      onChange={(e) => setShippingInfo({...shippingInfo, email: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, email: e.target.value })}
                       className="mt-1"
                       required
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <Label htmlFor="phone">Phone Number *</Label>
                     <Input
                       id="phone"
                       type="tel"
                       value={shippingInfo.phone}
-                      onChange={(e) => setShippingInfo({...shippingInfo, phone: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
                       className="mt-1"
                       required
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <Label htmlFor="address">Street Address *</Label>
                     <Input
                       id="address"
                       value={shippingInfo.address}
-                      onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
                       className="mt-1"
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="apartment">Apartment, Suite, etc.</Label>
                     <Input
                       id="apartment"
                       value={shippingInfo.apartment}
-                      onChange={(e) => setShippingInfo({...shippingInfo, apartment: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, apartment: e.target.value })}
                       className="mt-1"
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="city">City *</Label>
                     <Input
                       id="city"
                       value={shippingInfo.city}
-                      onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, city: e.target.value })}
                       className="mt-1"
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="state">State/Division *</Label>
                     <Input
                       id="state"
                       value={shippingInfo.state}
-                      onChange={(e) => setShippingInfo({...shippingInfo, state: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, state: e.target.value })}
                       className="mt-1"
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="zipCode">ZIP Code *</Label>
                     <Input
                       id="zipCode"
                       value={shippingInfo.zipCode}
-                      onChange={(e) => setShippingInfo({...shippingInfo, zipCode: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, zipCode: e.target.value })}
                       className="mt-1"
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="country">Country</Label>
                     <Input
                       id="country"
                       value={shippingInfo.country}
-                      onChange={(e) => setShippingInfo({...shippingInfo, country: e.target.value})}
+                      onChange={(e) => setShippingInfo({ ...shippingInfo, country: e.target.value })}
                       className="mt-1"
                       disabled
                     />
@@ -753,7 +741,7 @@ const handlePlaceOrder = async () => {
                   <CreditCard className="h-6 w-6 text-primary" />
                   Payment Information
                 </h2>
-                
+
                 <div className="mb-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Method</h3>
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
@@ -773,7 +761,7 @@ const handlePlaceOrder = async () => {
                         </p>
                       </Label>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 p-4 border rounded-lg">
                       <RadioGroupItem value="cash_on_delivery" id="cash_on_delivery" />
                       <Label htmlFor="cash_on_delivery" className="flex-1 cursor-pointer">
@@ -797,7 +785,7 @@ const handlePlaceOrder = async () => {
                       <div>
                         <h4 className="font-medium text-blue-900 mb-1">Secure Payment Gateway</h4>
                         <p className="text-sm text-blue-700">
-                          You will be redirected to SSL Commerz secure payment page. 
+                          You will be redirected to SSL Commerz secure payment page.
                           Your payment information is encrypted and secure.
                         </p>
                       </div>
@@ -829,7 +817,7 @@ const handlePlaceOrder = async () => {
             {currentStep === 'review' && (
               <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Review Your Order</h2>
-                
+
                 {/* Order Summary */}
                 <div className="mb-8">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h3>
@@ -838,8 +826,8 @@ const handlePlaceOrder = async () => {
                       <div key={item.id} className="flex items-center justify-between py-2">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 bg-gray-100 rounded">
-                            <img 
-                              src={item.productImages?.[0]?.imageUrl || '/api/placeholder/48/48'} 
+                            <img
+                              src={item.productImages?.[0]?.imageUrl || '/api/placeholder/48/48'}
                               alt={item.name}
                               className="w-full h-full object-cover rounded"
                             />
@@ -888,8 +876,8 @@ const handlePlaceOrder = async () => {
                       {paymentMethod === 'ssl_commerz' ? 'SSL Commerz Online Payment' : 'Cash on Delivery'}
                     </p>
                     <p className="text-gray-600">
-                      {paymentMethod === 'ssl_commerz' 
-                        ? 'You will be redirected to secure payment page' 
+                      {paymentMethod === 'ssl_commerz'
+                        ? 'You will be redirected to secure payment page'
                         : 'Pay with cash when your order arrives'}
                     </p>
                   </div>
@@ -907,7 +895,7 @@ const handlePlaceOrder = async () => {
                       I agree to the Terms & Conditions and Privacy Policy. I understand that my order is subject to availability and confirmation.
                     </Label>
                   </div>
-                  
+
                   <div className="flex items-start gap-2">
                     <Checkbox
                       id="newsletter"
@@ -934,7 +922,7 @@ const handlePlaceOrder = async () => {
                   Back
                 </Button>
               )}
-              
+
               <Button
                 onClick={handleNextStep}
                 disabled={isProcessing}
@@ -995,12 +983,12 @@ const handlePlaceOrder = async () => {
                       <span className="text-gray-600">Subtotal</span>
                       <span className="font-medium">{formatPrice(subtotal)}</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                       <span className="text-gray-600">Shipping</span>
                       <span className="font-medium">{formatPrice(shippingCost)}</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                       <span className="text-gray-600">VAT (5%)</span>
                       <span className="font-medium">{formatPrice(tax)}</span>
@@ -1065,7 +1053,7 @@ const handlePlaceOrder = async () => {
                 <p className="text-sm text-gray-300">256-bit SSL encryption</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-6">
               <div className="text-center">
                 <Shield className="h-8 w-8 mx-auto mb-1" />
@@ -1080,7 +1068,7 @@ const handlePlaceOrder = async () => {
                 <p className="text-xs">24/7 Customer Support</p>
               </div>
             </div>
-            
+
             <div className="text-sm text-gray-300">
               © {new Date().getFullYear()} ShopCart. All rights reserved.
             </div>
