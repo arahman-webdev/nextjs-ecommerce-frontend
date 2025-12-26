@@ -36,15 +36,15 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
     )}>
       {/* Image Container */}
       <div className={cn(
-        "relative overflow-hidden bg-gray-100",
-        viewMode === 'grid' ? "h-56" : "w-64 h-64"
+        "relative overflow-hidden bg-[#FAFAFA]",
+        viewMode === 'grid' ? "h-56" : "w-96 h-96 "
       )}>
         <Link href={`/products/${product.slug}`}>
           <Image
             src={mainImage}
             alt={product.name}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-contain bg-[#FAFAFA]  group-hover:scale-105 transition-transform duration-500"
           />
         </Link>
 

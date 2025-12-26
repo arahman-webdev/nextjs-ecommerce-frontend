@@ -4,6 +4,7 @@ import "../globals.css"
 
 import CartProvider from "../context/CartContext";
 import Navbar from "@/components/SharedComponent/Navbar";
+import { WishlistProvider } from "../context/WishlistContext";
 
 
 const geistSans = Geist({
@@ -34,11 +35,14 @@ export default function RootLayout({
       >
         <CartProvider>
 
-            
+          <WishlistProvider>
 
-        <Navbar />
-        {children}
-        <footer>Footer</footer>
+
+
+            <Navbar />
+            {children}
+            <footer>Footer</footer>
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>
