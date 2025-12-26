@@ -193,7 +193,7 @@ export default function ProductDetailPage() {
   try {
     if (!product) return;
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     if (!token) {
       toast.error('Please login to use wishlist');
       return;
@@ -216,17 +216,20 @@ export default function ProductDetailPage() {
       setIsInWishlist(true);
       toast.success('Added to wishlist ❤️');
     } else {
-      toast.error(response.data?.message || 'Failed to add to wishlist');
+      // toast.error(response.data.message || 'Failed to add to wishlist');
+
+      console.log("from wishlist err",response.data.data)
     }
   } catch (error: any) {
-    console.error('Wishlist error:', error);
+    toast.error(error.response.data.message)
+    console.error('Wishlist error:', error.response.data.message);
 
     if (error.response?.status === 409) {
       // already exists
       setIsInWishlist(true);
       toast.info('Already in wishlist');
     } else {
-      toast.error('Something went wrong');
+     console.log("something went wrong")
     }
   } finally {
     setIsAddingToWishlist(false);

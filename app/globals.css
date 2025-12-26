@@ -48,42 +48,42 @@
 :root {
   /* Radius */
   --radius: 0.625rem;
-  
+
   /* Your Brand Colors in OKLCH (Light Mode) */
   --primary: oklch(68% 0.19 134);        /* #83B734 - Spring Green */
   --primary-foreground: oklch(98% 0 0);  /* White text on green */
-  
+
   --secondary: oklch(50% 0.18 274);      /* #344EB7 - Trust Blue */
   --secondary-foreground: oklch(98% 0 0); /* White text on blue */
-  
+
   /* System Colors */
   --destructive: oklch(63% 0.24 25);     /* #DC3545 - Red for errors */
   --destructive-foreground: oklch(98% 0 0);
-  
+
   --success: oklch(65% 0.23 149);        /* #28A745 - Success green */
   --warning: oklch(85% 0.2 85);          /* #FFC107 - Warning yellow */
   --info: oklch(70% 0.15 230);           /* #17A2B8 - Info teal */
-  
+
   /* Neutral Colors (Light Mode) */
   --background: oklch(100% 0 0);         /* #FFFFFF */
   --foreground: oklch(15% 0 0);          /* #262626 - Dark text */
-  
+
   --card: oklch(100% 0 0);               /* White cards */
   --card-foreground: oklch(15% 0 0);
-  
+
   --popover: oklch(100% 0 0);
   --popover-foreground: oklch(15% 0 0);
-  
+
   --muted: oklch(96% 0 0);               /* #F5F5F5 - Light gray */
   --muted-foreground: oklch(56% 0 0);    /* #8A8A8A - Gray text */
-  
+
   --accent: oklch(96% 0 0);              /* Accent backgrounds */
   --accent-foreground: oklch(15% 0 0);
-  
+
   --border: oklch(92% 0 0);              /* #EBEBEB - Light borders */
   --input: oklch(96% 0 0);               /* Input backgrounds */
   --ring: oklch(71% 0 0);                /* Focus rings */
-  
+
   /* Sidebar (Light) */
   --sidebar: oklch(98% 0 0);
   --sidebar-foreground: oklch(15% 0 0);
@@ -93,7 +93,7 @@
   --sidebar-accent-foreground: oklch(15% 0 0);
   --sidebar-border: oklch(92% 0 0);
   --sidebar-ring: oklch(71% 0 0);
-  
+
   /* Chart Colors */
   --chart-1: oklch(65% 0.22 41);         /* Orange */
   --chart-2: oklch(60% 0.12 185);        /* Teal */
@@ -106,38 +106,38 @@
   /* Your Brand Colors (Dark Mode - Adjusted for contrast) */
   --primary: oklch(75% 0.18 134);        /* Brighter green for dark mode */
   --primary-foreground: oklch(15% 0 0);  /* Dark text on green */
-  
+
   --secondary: oklch(65% 0.15 274);      /* Brighter blue for dark mode */
   --secondary-foreground: oklch(15% 0 0); /* Dark text on blue */
-  
+
   /* System Colors (Dark) */
   --destructive: oklch(70% 0.19 25);
   --destructive-foreground: oklch(15% 0 0);
-  
+
   --success: oklch(75% 0.2 149);
   --warning: oklch(80% 0.18 85);
   --info: oklch(75% 0.14 230);
-  
+
   /* Neutral Colors (Dark Mode) */
   --background: oklch(10% 0 0);          /* #1A1A1A - Dark background */
   --foreground: oklch(98% 0 0);          /* #FAFAFA - Light text */
-  
+
   --card: oklch(15% 0 0);                /* #262626 - Dark cards */
   --card-foreground: oklch(98% 0 0);
-  
+
   --popover: oklch(15% 0 0);
   --popover-foreground: oklch(98% 0 0);
-  
+
   --muted: oklch(20% 0 0);               /* #333333 - Dark gray */
   --muted-foreground: oklch(71% 0 0);    /* #B5B5B5 - Light gray text */
-  
+
   --accent: oklch(20% 0 0);
   --accent-foreground: oklch(98% 0 0);
-  
+
   --border: oklch(25% 0 0);              /* #404040 - Dark borders */
   --input: oklch(25% 0 0);
   --ring: oklch(40% 0 0);
-  
+
   /* Sidebar (Dark) */
   --sidebar: oklch(15% 0 0);
   --sidebar-foreground: oklch(98% 0 0);
@@ -147,7 +147,7 @@
   --sidebar-accent-foreground: oklch(98% 0 0);
   --sidebar-border: oklch(25% 0 0);
   --sidebar-ring: oklch(40% 0 0);
-  
+
   /* Chart Colors (Dark) */
   --chart-1: oklch(49% 0.24 264);
   --chart-2: oklch(70% 0.17 162);
@@ -163,13 +163,13 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Custom utility classes for your brand colors */
   .text-brand-primary { color: oklch(68% 0.19 134); }
   .text-brand-secondary { color: oklch(50% 0.18 274); }
   .bg-brand-primary { background-color: oklch(68% 0.19 134); }
   .bg-brand-secondary { background-color: oklch(50% 0.18 274); }
-  
+
   .dark .text-brand-primary { color: oklch(75% 0.18 134); }
   .dark .text-brand-secondary { color: oklch(65% 0.15 274); }
   .dark .bg-brand-primary { background-color: oklch(75% 0.18 134); }
@@ -181,19 +181,19 @@
   .linear-primary {
     @apply bg-linear-to-r from-[#83B734] to-[#9BC55A];
   }
-  
+
   .linear-secondary {
     @apply bg-linear-to-r from-[#344EB7] to-[#5A6DC5];
   }
-  
+
   .linear-brand {
     @apply bg-linear-to-r from-[#83B734] via-[#5A8C3A] to-[#344EB7];
   }
-  
+
   .shadow-brand {
     box-shadow: 0 4px 14px 0 rgba(131, 183, 52, 0.2);
   }
-  
+
   .shadow-brand-secondary {
     box-shadow: 0 4px 14px 0 rgba(52, 78, 183, 0.2);
   }

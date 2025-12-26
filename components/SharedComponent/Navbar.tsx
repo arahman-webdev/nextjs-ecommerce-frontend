@@ -31,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { CartContext } from '@/app/context/CartContext';
 import { CartContextType } from '@/types/productType';
+import { useWishlist } from '@/app/context/WishlistContext';
 
 type UserType = {
   id: string;
@@ -52,6 +53,7 @@ const categories = [
 ];
 
 export default function Navbar() {
+  const { wishlist, isLoading } = useWishlist();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -211,7 +213,7 @@ export default function Navbar() {
                   className={`flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium ${pathname === link.href ? 'text-primary' : ''
                     }`}
                 >
-                  
+
                   <span>{link.label}</span>
                 </Link>
               ))}
@@ -323,12 +325,21 @@ export default function Navbar() {
 
                     {getUserLinks().map((link) => (
                       <DropdownMenuItem key={link.href} asChild>
-                        <Link href={link.href} className="cursor-pointer">
-                          <link.icon className="mr-2 h-4 w-4" />
+                        <Link href={link.href} className="flex justify-between w-full">
                           <span>{link.label}</span>
+                          {link.label === "Wishlist" && (
+                            isLoading ? (
+                              <span className="ml-1 text-muted">…</span>
+                            ) : (
+                              <span className="ml-1 text-primary font-medium">
+                                ({wishlist.length})
+                              </span>
+                            )
+                          )}
                         </Link>
                       </DropdownMenuItem>
                     ))}
+
 
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -427,7 +438,7 @@ export default function Navbar() {
                     className={`flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${pathname === link.href ? 'bg-primary/10 text-primary' : ''
                       }`}
                   >
-                  
+
                     <span>{link.label}</span>
                   </Link>
                 ))}

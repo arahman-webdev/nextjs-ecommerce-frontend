@@ -5,6 +5,7 @@ import "../globals.css"
 import CartProvider from "../context/CartContext";
 import Navbar from "@/components/SharedComponent/Navbar";
 import { WishlistProvider } from "../context/WishlistContext";
+import { Toaster } from "@/components/ui/sonner";
 
 
 const geistSans = Geist({
@@ -36,11 +37,9 @@ export default function RootLayout({
         <CartProvider>
 
           <WishlistProvider>
-
-
-
             <Navbar />
             {children}
+             <Toaster position="top-center" richColors />
             <footer>Footer</footer>
           </WishlistProvider>
         </CartProvider>

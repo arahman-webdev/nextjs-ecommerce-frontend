@@ -234,7 +234,7 @@ function ProductsContent() {
             </p>
             
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto bg-white">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Search className="h-5 w-5 text-gray-400" />
@@ -244,11 +244,11 @@ function ProductsContent() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search products, brands, categories..."
-                  className="w-full pl-12 pr-24 py-4 rounded-xl text-gray-900 focus:outline-none focus:ring-3 focus:ring-primary/30 shadow-lg"
+                  className="w-full pl-12 pr-24 py-4  text-gray-900 focus:outline-none focus:ring-3 focus:ring-primary/30 shadow-lg"
                 />
                 <Button
                   type="submit"
-                  className="absolute right-2 top-2 bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2 rounded-lg"
+                  className="absolute right-2 top-2  bg-primary text-primary-foreground text-lg hover:bg-primary/90 px-8 py-5 cursor-pointer rounded-none"
                 >
                   Search
                 </Button>

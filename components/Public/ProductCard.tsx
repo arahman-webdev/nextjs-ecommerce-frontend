@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AddToCart } from '@/components/SharedComponent/AddToCart';
 import { useState } from 'react';
+import WishlistButton from '../SharedComponent/WishlistButton';
 
 interface ProductCardProps {
   product: any;
@@ -71,6 +72,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow hover:shadow-md transition-shadow">
             <Heart className="h-5 w-5 text-gray-600 hover:text-red-500" />
+            <WishlistButton productId={product.id} />
           </button>
           <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow hover:shadow-md transition-shadow">
             <Eye className="h-5 w-5 text-gray-600 hover:text-blue-500" />
