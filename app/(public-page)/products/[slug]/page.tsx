@@ -8,14 +8,14 @@ import { CartContext } from '@/app/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  ShoppingBag, 
-  Heart, 
-  Star, 
-  Share2, 
-  Truck, 
-  Shield, 
-  RefreshCw, 
+import {
+  ShoppingBag,
+  Heart,
+  Star,
+  Share2,
+  Truck,
+  Shield,
+  RefreshCw,
   ArrowLeft,
   Package,
   CheckCircle,
@@ -117,10 +117,14 @@ interface Review {
 export default function ProductDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
-  
+
   const cartContext = useContext(CartContext);
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -140,29 +144,33 @@ export default function ProductDetailPage() {
   const fetchProduct = async () => {
     try {
       setIsLoading(true);
+
       const response = await axios.get(
         `http://localhost:5000/api/product/${slug}`
       );
-      
+
       if (response.data.success) {
-        setProduct(response.data.data);
-     
- 
-        fetchReviews(response.data.data.id);
-        fetchRelatedProducts(response.data.data.categoryId);
+        const productData = response.data.data;
+
+        setProduct(productData);
+
+        // ✅ Use data directly, NOT state
+        fetchReviews(productData.id);
+        fetchRelatedProducts(productData.category?.name);
       }
     } catch (error) {
-      console.error('Error fetching product:', error);
-      toast.error('Failed to load product');
+      console.error("Error fetching product:", error);
+      toast.error("Failed to load product");
     } finally {
       setIsLoading(false);
     }
   };
 
+
   const fetchReviews = async (productId: string) => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/product/${productId}/reviews`
+        `http://localhost:5000/api/product/review${productId}`
       );
       if (response.data.success) {
         setReviews(response.data.data);
@@ -171,70 +179,71 @@ export default function ProductDetailPage() {
       console.error('Error fetching reviews:', error);
     }
   };
+  const fetchRelatedProducts = async (categoryName?: string) => {
+    if (!categoryName) return;
 
-  const fetchRelatedProducts = async (categoryId: string | null) => {
-    if (!categoryId) return;
-    
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/products?category=${categoryId}&limit=4`
+        `http://localhost:5000/api/product?category=${encodeURIComponent(categoryName)}`
       );
+
       if (response.data.success) {
         setRelatedProducts(response.data.data);
       }
     } catch (error) {
-      console.error('Error fetching related products:', error);
+      console.error("Error fetching related products:", error);
     }
   };
 
- 
 
- const handleAddToWishlist = async () => {
-  try {
-    if (!product) return;
+  console.log("from detail page with related products", product)
 
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      toast.error('Please login to use wishlist');
-      return;
-    }
+  const handleAddToWishlist = async () => {
+    try {
+      if (!product) return;
 
-    
-
-    const response = await axios.post(
-      'http://localhost:5000/api/product/wishlist/add',
-      { productId: product.id },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('Please login to use wishlist');
+        return;
       }
-    );
 
-    if (response.data?.success) {
-      setIsInWishlist(true);
-      toast.success('Added to wishlist ❤️');
-    } else {
-      // toast.error(response.data.message || 'Failed to add to wishlist');
 
-      console.log("from wishlist err",response.data.data)
+
+      const response = await axios.post(
+        'http://localhost:5000/api/product/wishlist/add',
+        { productId: product.id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data?.success) {
+        setIsInWishlist(true);
+        toast.success('Added to wishlist ❤️');
+      } else {
+        // toast.error(response.data.message || 'Failed to add to wishlist');
+
+        console.log("from wishlist err", response.data.data)
+      }
+    } catch (error: any) {
+      toast.error(error.response.data.message)
+      console.error('Wishlist error:', error.response.data.message);
+
+      if (error.response?.status === 409) {
+        // already exists
+        setIsInWishlist(true);
+        toast.info('Already in wishlist');
+      } else {
+        console.log("something went wrong")
+      }
+    } finally {
+      setIsAddingToWishlist(false);
     }
-  } catch (error: any) {
-    toast.error(error.response.data.message)
-    console.error('Wishlist error:', error.response.data.message);
-
-    if (error.response?.status === 409) {
-      // already exists
-      setIsInWishlist(true);
-      toast.info('Already in wishlist');
-    } else {
-     console.log("something went wrong")
-    }
-  } finally {
-    setIsAddingToWishlist(false);
-  }
-};
+  };
 
 
   const handleShare = () => {
@@ -250,6 +259,75 @@ export default function ProductDetailPage() {
     }
   };
 
+  const handleSubmitReview = async () => {
+    try {
+      if (!reviewComment.trim()) {
+        toast.error('Please write a review');
+        return;
+      }
+
+      if (!product?.id) {
+        toast.error('No product selected');
+        return;
+      }
+
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('Please login to submit a review');
+        // You can add redirect to login here if needed
+        return;
+      }
+
+      setSubmittingReview(true);
+
+      const reviewData = {
+        productId: product.id,
+        rating: reviewRating,
+        comment: reviewComment
+      };
+
+      const response = await axios.post(
+        `http://localhost:5000/api/product/review/${product.id}`,
+        reviewData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data?.success) {
+        toast.success('Review submitted successfully!');
+
+        // Refresh reviews
+        fetchReviews(product.id);
+
+        // Reset form
+        setReviewComment('');
+        setReviewRating(5);
+        setShowReviewForm(false);
+      } else {
+        throw new Error(response.data?.message || 'Failed to submit review');
+      }
+
+    } catch (error: any) {
+      console.error('Review submission error:', error);
+
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
+        localStorage.clear();
+        // Redirect to login if needed
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to submit review. Please try again.');
+      }
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   const handleQuantityChange = (delta: number) => {
     const newQuantity = quantity + delta;
     if (newQuantity >= 1 && newQuantity <= (product?.stock || 10)) {
@@ -259,12 +337,12 @@ export default function ProductDetailPage() {
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isZoomed) return;
-    
+
     const container = e.currentTarget;
     const rect = container.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     setZoomPosition({ x, y });
   };
 
@@ -321,6 +399,8 @@ export default function ProductDetailPage() {
     );
   }
 
+  console.log("from checing product", product?.category?.name)
+
   return (
     <div className="bg-gray-50">
       {/* Container with your provided max-width */}
@@ -336,7 +416,7 @@ export default function ProductDetailPage() {
           {/* ========== LEFT: IMAGES ========== */}
           <div className="space-y-6">
             {/* Main Image with Zoom */}
-            <div 
+            <div
               className="relative bg-gray-50 rounded-2xl overflow-hidden group border"
 
             >
@@ -348,17 +428,17 @@ export default function ProductDetailPage() {
                   height={600}
                   className={cn(
                     "object-cover transition-transform duration-300",
-                   
+
                   )}
-             
-                 
+
+
                 />
               </div>
-              
+
               {/* Zoom Indicator */}
               {isZoomed && (
                 <div className="absolute inset-0 pointer-events-none">
-                  <div 
+                  <div
                     className="absolute w-64 h-64 border-2 border-primary/50 bg-white/20"
                     style={{
                       left: `calc(${zoomPosition.x}% - 128px)`,
@@ -367,7 +447,7 @@ export default function ProductDetailPage() {
                   />
                 </div>
               )}
-              
+
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2">
                 {product.isFeatured && (
@@ -387,7 +467,7 @@ export default function ProductDetailPage() {
                   </div>
                 )}
               </div>
-              
+
               {/* Image Actions */}
               <div className="absolute top-4 right-4 flex flex-col gap-2">
                 <button
@@ -413,8 +493,8 @@ export default function ProductDetailPage() {
                   onClick={() => setSelectedImageIndex(i)}
                   className={cn(
                     'flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 border-2 rounded-xl overflow-hidden transition-all duration-200',
-                    selectedImageIndex === i 
-                      ? 'border-primary ring-2 ring-primary/20' 
+                    selectedImageIndex === i
+                      ? 'border-primary ring-2 ring-primary/20'
                       : 'border-gray-200'
                   )}
                   style={selectedImageIndex === i ? { borderColor: '#83B734' } : {}}
@@ -480,7 +560,7 @@ export default function ProductDetailPage() {
               </p>
             </div>
 
-          
+
 
             {/* Quantity & Add to Cart */}
             <div className="space-y-6">
@@ -531,8 +611,8 @@ export default function ProductDetailPage() {
                     <Heart
                       className={cn(
                         "h-5 w-5 transition-all duration-200",
-                        isInWishlist 
-                          ? "fill-red-500 text-red-500" 
+                        isInWishlist
+                          ? "fill-red-500 text-red-500"
                           : "group-hover:text-primary"
                       )}
                       style={!isInWishlist ? { color: '#83B734' } : {}}
@@ -612,29 +692,29 @@ export default function ProductDetailPage() {
           <Tabs defaultValue="description" className="w-full">
             <div className="border-b">
               <TabsList className="w-full bg-transparent h-12 lg:h-14 overflow-x-auto">
-                <TabsTrigger 
-                  value="description" 
+                <TabsTrigger
+                  value="description"
                   className="data-[state=active]:border-b-2 data-[state=active]:text-primary px-4 lg:px-6 py-3 text-sm lg:text-lg"
                   style={{ borderColor: '#83B734' }}
                 >
                   Description
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="specifications" 
+                <TabsTrigger
+                  value="specifications"
                   className="data-[state=active]:border-b-2 data-[state=active]:text-primary px-4 lg:px-6 py-3 text-sm lg:text-lg"
                   style={{ borderColor: '#83B734' }}
                 >
                   Specifications
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="reviews" 
+                <TabsTrigger
+                  value="reviews"
                   className="data-[state=active]:border-b-2 data-[state=active]:text-primary px-4 lg:px-6 py-3 text-sm lg:text-lg"
                   style={{ borderColor: '#83B734' }}
                 >
                   Reviews ({reviews.length})
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="shipping" 
+                <TabsTrigger
+                  value="shipping"
                   className="data-[state=active]:border-b-2 data-[state=active]:text-primary px-4 lg:px-6 py-3 text-sm lg:text-lg"
                   style={{ borderColor: '#83B734' }}
                 >
@@ -642,7 +722,7 @@ export default function ProductDetailPage() {
                 </TabsTrigger>
               </TabsList>
             </div>
-            
+
             <div className="py-6 lg:py-8">
               <TabsContent value="description" className="mt-0">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
@@ -655,7 +735,7 @@ export default function ProductDetailPage() {
                       <p>
                         Designed for both style and functionality, this furniture piece features sustainable materials and superior craftsmanship that ensures lasting durability and timeless appeal.
                       </p>
-                      
+
                       <h4 className="text-lg lg:text-xl font-bold text-gray-900 mt-6 lg:mt-8 mb-4">Key Features:</h4>
                       <ul className="space-y-3">
                         {[
@@ -674,7 +754,7 @@ export default function ProductDetailPage() {
                       </ul>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6 lg:mt-0">
                     <div className="bg-gray-50 rounded-xl lg:rounded-2xl p-6 lg:p-8">
                       <h4 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">Designer Notes</h4>
@@ -705,7 +785,7 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="specifications" className="mt-0">
                 <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6 lg:mb-8">Technical Specifications</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
@@ -732,7 +812,7 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="reviews" className="mt-0">
                 <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
                   <div className="lg:w-1/3">
@@ -744,7 +824,7 @@ export default function ProductDetailPage() {
                           Based on {reviews.length} customer {reviews.length === 1 ? 'review' : 'reviews'}
                         </p>
                       </div>
-                      
+
                       <div className="space-y-3 lg:space-y-4">
                         {[5, 4, 3, 2, 1].map((stars) => {
                           const count = reviews.filter(r => Math.round(r.rating) === stars).length;
@@ -756,9 +836,9 @@ export default function ProductDetailPage() {
                                 <Star className="h-3 w-3 lg:h-4 lg:w-4 fill-yellow-400 text-yellow-400" />
                               </div>
                               <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div 
+                                <div
                                   className="h-full bg-primary rounded-full"
-                                  style={{ 
+                                  style={{
                                     width: `${percentage}%`,
                                     backgroundColor: '#83B734'
                                   }}
@@ -769,8 +849,8 @@ export default function ProductDetailPage() {
                           );
                         })}
                       </div>
-                      
-                      <Button 
+
+                      <Button
                         className="w-full mt-6 lg:mt-8 h-10 lg:h-12"
                         style={{ backgroundColor: '#83B734' }}
                       >
@@ -779,7 +859,7 @@ export default function ProductDetailPage() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div className="lg:w-2/3 mt-6 lg:mt-0">
                     <div className="space-y-6 lg:space-y-8">
                       {reviews.length > 0 ? (
@@ -811,11 +891,11 @@ export default function ProductDetailPage() {
                                 </div>
                               )}
                             </div>
-                            
+
                             {review.comment && (
                               <p className="text-gray-700 leading-relaxed text-sm lg:text-base">{review.comment}</p>
                             )}
-                            
+
                             <div className="flex items-center gap-4 mt-4 lg:mt-6">
                               <button className="text-sm text-gray-500 hover:text-gray-700">
                                 Helpful? 👍
@@ -833,7 +913,7 @@ export default function ProductDetailPage() {
                           <p className="text-gray-600 max-w-md mx-auto mb-6 lg:mb-8 text-sm lg:text-base">
                             Be the first to share your experience with this product. Your review helps others make informed decisions.
                           </p>
-                          <Button 
+                          <Button
                             className="px-6 lg:px-8 py-2 lg:py-3"
                             style={{ backgroundColor: '#83B734' }}
                           >
@@ -846,7 +926,7 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="shipping" className="mt-0">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                   <div>
@@ -871,7 +951,7 @@ export default function ProductDetailPage() {
                           Free standard shipping on all orders over $199. Orders placed before 2 PM EST ship same day.
                         </p>
                       </div>
-                      
+
                       <div className="border rounded-xl lg:rounded-2xl p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                           <div className="p-2 lg:p-3 bg-primary/10 rounded-lg lg:rounded-xl flex-shrink-0" style={{ backgroundColor: '#83B7341A' }}>
@@ -891,7 +971,7 @@ export default function ProductDetailPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6 lg:mt-0">
                     <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-6 lg:mb-8">Return Policy</h3>
                     <div className="space-y-6">
@@ -912,7 +992,7 @@ export default function ProductDetailPage() {
                           <p>• Refunds processed within 3-5 business days</p>
                         </div>
                       </div>
-                      
+
                       <div className="bg-primary/5 border border-primary/20 rounded-xl lg:rounded-2xl p-4 lg:p-6" style={{ backgroundColor: '#83B7340A', borderColor: '#83B73433' }}>
                         <div className="flex items-start gap-3 lg:gap-4">
                           <ShieldCheck className="h-5 w-5 lg:h-6 lg:w-6 text-primary mt-1 flex-shrink-0" style={{ color: '#83B734' }} />
@@ -921,8 +1001,8 @@ export default function ProductDetailPage() {
                             <p className="text-gray-700 mb-3 text-sm lg:text-base">
                               Extend your warranty to 5 years for additional peace of mind.
                             </p>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               className="border-primary text-primary hover:bg-primary/10 text-sm"
                               style={{ borderColor: '#83B734', color: '#83B734' }}
                             >
@@ -948,7 +1028,7 @@ export default function ProductDetailPage() {
                 Discover more premium furniture pieces that complement your style and elevate your space
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {relatedProducts.map((relatedProduct) => (
                 <div key={relatedProduct.id} className="group bg-white rounded-xl lg:rounded-2xl shadow-sm border hover:shadow-lg transition-all duration-300 overflow-hidden">
@@ -967,14 +1047,14 @@ export default function ProductDetailPage() {
                           <Package className="h-12 w-12 lg:h-16 lg:w-16 text-gray-300" />
                         </div>
                       )}
-                      
+
                       {relatedProduct.isFeatured && (
                         <div className="absolute top-2 lg:top-3 left-2 lg:left-3 bg-primary text-white px-2 lg:px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: '#83B734' }}>
                           NEW
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="p-4 lg:p-5">
                       <div className="flex items-center justify-between mb-2 lg:mb-3">
                         <span className="text-xs lg:text-sm font-medium text-gray-600">
@@ -987,11 +1067,11 @@ export default function ProductDetailPage() {
                           </span>
                         </div>
                       </div>
-                      
+
                       <h3 className="font-bold text-gray-900 line-clamp-2 mb-2 lg:mb-3 text-sm lg:text-base group-hover:text-primary transition-colors" style={{ color: '#83B734' }}>
                         {relatedProduct.name}
                       </h3>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-lg lg:text-xl font-bold text-gray-900">
                           {formatPrice(relatedProduct.price)}

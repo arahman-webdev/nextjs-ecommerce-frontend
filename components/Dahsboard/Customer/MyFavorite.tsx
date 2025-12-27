@@ -498,7 +498,7 @@ export default function MyFavorites() {
                 )}
               </Button>
               
-             <AddToCart />
+            
               
               <Button
                 variant="outline"
