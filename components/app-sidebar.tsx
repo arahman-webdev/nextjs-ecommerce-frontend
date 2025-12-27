@@ -63,7 +63,7 @@ const navData = {
       { title: "Dashboard", url: "/dashboard/seller", icon: IconLayout2 },
       { title: "My Products", url: "/dashboard/seller/my-products", icon: IconShoppingBag },
       { title: "Create Product", url: "/dashboard/seller/create-product", icon: IconPlus },
-      { title: "Orders Requests", url: "/dashboard/seller/orders", icon: IconCalendar },
+      { title: "Orders Requests", url: "/dashboard/seller/my-orders", icon: IconCalendar },
       { title: "My Reviews", url: "/dashboard/seller/reviews", icon: IconStar },
       { title: "Profile", url: "/dashboard/seller/profile", icon: IconUserCircle },
     ],
