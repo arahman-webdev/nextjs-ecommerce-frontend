@@ -25,7 +25,7 @@ interface UserProfile {
   name: string;
   email: string;
   phone?: string;
-  profilePic: string;
+  profilePhoto: string;
   bio?: string;
   role: 'TOURIST' | 'GUIDE' | 'ADMIN';
   address?: string;
@@ -242,7 +242,7 @@ const handleSaveProfile = async () => {
               >
                 <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/80 shadow-2xl overflow-hidden">
                   <Image
-                    src={imagePreview || user.profilePic || '/default-user.jpg'}
+                    src={imagePreview || user.profilePhoto || '/default-user.jpg'}
                     alt={user.name}
                     fill
                     className="object-cover"
@@ -359,8 +359,8 @@ const handleSaveProfile = async () => {
                   </Button>
                   <Button
                     onClick={handleEditToggle}
-                    variant="outline"
-                    className="border-white text-white hover:bg-white/10"
+                   
+                    className="border-white bg-red-600 hover:bg-red-500 text-white"
                   >
                     <X className="h-4 w-4 mr-2" />
                     Cancel
