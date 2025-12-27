@@ -148,8 +148,10 @@ export default function Navbar() {
   // User dashboard links based on role
   const getUserLinks = () => {
     const commonLinks = [
-      { href: '/profile', label: 'My Profile', icon: UserCircle },
-      { href: '/orders', label: 'My Orders', icon: Package },
+
+       { href: '/dashboard/customer', label: 'My Dashboard', icon: Store },
+      { href: '/dashboard/customer/profile', label: 'My Profile', icon: UserCircle },
+      
       { href: '/wishlist', label: 'Wishlist', icon: Heart },
     ];
 
@@ -163,8 +165,9 @@ export default function Navbar() {
 
     if (user?.role === 'SELLER') {
       return [
-        ...commonLinks,
-        { href: '/seller/dashboard', label: 'Seller Dashboard', icon: Store },
+      
+        { href: '/dashboard/seller/profile', label: 'My Profile', icon: UserCircle },
+        { href: '/dashboard/seller', label: 'My Dashboard', icon: Store },
         { href: '/seller/products', label: 'My Products', icon: Package },
       ];
     }
