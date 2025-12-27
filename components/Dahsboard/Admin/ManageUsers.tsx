@@ -157,8 +157,8 @@ export default function ManageUsersTable({ users }: ManageUsersTableProps) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-blue-600 mb-6 flex gap-1.5 items-center">
-        <IconUsers size={30} /> Manage Users
+      <h1 className="text-2xl font-bold text-gray-900 mb-6 flex gap-1.5 items-center">
+        <IconUsers size={30} className="text-primary" /> Manage Users
       </h1>
 
       <div className="bg-white shadow-md rounded-xl p-8 border border-blue-100">

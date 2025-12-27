@@ -155,9 +155,9 @@ export default function Navbar() {
 
     if (user?.role === 'ADMIN') {
       return [
-        ...commonLinks,
-        { href: '/admin/dashboard', label: 'Admin Dashboard', icon: Shield },
-        { href: '/admin/products', label: 'Manage Products', icon: Package },
+        { href: '/dashboard/admin/profile', label: 'My Profile', icon: UserCircle },
+        { href: '/dashboard/admin', label: 'Admin Dashboard', icon: Shield },
+        { href: '/dashboard/admin/listings', label: 'Manage Products', icon: Package },
       ];
     }
 

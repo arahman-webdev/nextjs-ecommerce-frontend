@@ -8,50 +8,63 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Eye, Trash2, Loader2 } from "lucide-react";
-import { IconUsers } from "@tabler/icons-react";
+import { Eye, Trash2, Loader2, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function ManageProductListingTable({ products }: { products: any[] }) {
+// Define Product type
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  price: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  stock: number;
+  averageRating: number;
+  reviewCount: number;
+  totalOrders: number;
+  productImages: { imageUrl: string }[];
+  user?: {
+    name: string;
+    email: string;
+  };
+  category?: {
+    name: string;
+  };
+}
+
+interface ManageProductListingTableProps {
+  products: Product[];
+}
+
+export default function ManageProductListingTable({ products }: ManageProductListingTableProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [productToDelete, setproductToDelete] = useState<string | null>(null);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   // Get token from localStorage
   const getToken = (): string | null => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('accessToken');
+      return localStorage.getItem('accessToken') || localStorage.getItem('token');
     }
     return null;
   };
 
-  // Debug: Check if token exists
-  const debugAuth = () => {
-    console.log('=== DEBUG AUTH ===');
-    console.log('localStorage token:', localStorage.getItem('accessToken'));
-    console.log('localStorage userRole:', localStorage.getItem('userRole'));
-    console.log('sessionStorage token:', sessionStorage.getItem('token'));
-    console.log('Current URL:', window.location.href);
-  };
-
   // Update product status
-  const updateStatus = async (id: string) => {
+  const updateStatus = async (id: string, currentStatus: boolean) => {
     try {
       setLoadingId(id);
 
       // Get token
       const token = getToken();
       
-      console.log('Updating product status - Token:', token ? 'Found' : 'Not found');
-      
       if (!token) {
-        debugAuth();
         toast.error("Please login again");
         setTimeout(() => {
           window.location.href = '/login';
@@ -59,18 +72,20 @@ export default function ManageProductListingTable({ products }: { products: any[
         return;
       }
 
+      // Use PATCH or PUT based on your backend
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/product/toggle-status/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/product/status/${id}`,
         {
           method: "PATCH",
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
+          body: JSON.stringify({ 
+            isActive: !currentStatus 
+          }),
         }
       );
-
-      console.log('Status update response status:', res.status);
 
       if (res.status === 401) {
         toast.error("Session expired");
@@ -89,15 +104,15 @@ export default function ManageProductListingTable({ products }: { products: any[
       console.log('Status update success:', data);
 
       if (data.success) {
-        toast.success(data.message || "Status updated");
-        router.refresh();
+        toast.success(data.message || "Status updated successfully");
+        router.refresh(); // Refresh the page data
       } else {
         toast.error(data.message || "Update failed");
       }
 
     } catch (error: any) {
       console.error("Status Update Error:", error);
-      toast.error(error.message || "Failed to update");
+      toast.error(error.message || "Failed to update product status");
     } finally {
       setLoadingId(null);
     }
@@ -105,7 +120,7 @@ export default function ManageProductListingTable({ products }: { products: any[
 
   // Open delete confirmation
   const openDeleteConfirm = (id: string) => {
-    setproductToDelete(id);
+    setProductToDelete(id);
     setDeleteConfirmOpen(true);
   };
 
@@ -116,13 +131,9 @@ export default function ManageProductListingTable({ products }: { products: any[
     try {
       setLoadingId(productToDelete);
 
-      // Get token
       const token = getToken();
       
-      console.log('Deleting product - Token:', token ? 'Found' : 'Not found');
-      
       if (!token) {
-        debugAuth();
         toast.error("Please login again");
         setTimeout(() => {
           window.location.href = '/login';
@@ -130,15 +141,16 @@ export default function ManageProductListingTable({ products }: { products: any[
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/${productToDelete}`, {
-        method: "DELETE",
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      console.log('Delete response status:', res.status);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/product/${productToDelete}`,
+        {
+          method: "DELETE",
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
 
       if (res.status === 401) {
         toast.error("Session expired");
@@ -154,164 +166,205 @@ export default function ManageProductListingTable({ products }: { products: any[
       }
 
       const data = await res.json();
-      console.log('Delete success:', data);
 
       if (data.success) {
-        toast.success(data.message || "product deleted");
-        router.refresh();
+        toast.success(data.message || "Product deleted successfully");
+        router.refresh(); // Refresh the page data
       } else {
         toast.error(data.message || "Delete failed");
       }
 
     } catch (error: any) {
       console.error("Delete Error:", error);
-      toast.error(error.message || "Failed to delete");
+      toast.error(error.message || "Failed to delete product");
     } finally {
       setLoadingId(null);
       setDeleteConfirmOpen(false);
-      setproductToDelete(null);
+      setProductToDelete(null);
     }
   };
 
   // View product details
-  const viewproduct = (id: string) => {
-    router.push(`/products/${id}`);
+  const viewProduct = (slug: string) => {
+    router.push(`/products/${slug}`);
+  };
+
+  // Format price
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(price);
   };
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-blue-600 mb-6 flex gap-1.5 items-center">
-        <IconUsers size={30} /> Manage product Listings
+      <h1 className="text-2xl font-bold text-gray-900 mb-6 flex gap-1.5 items-center">
+        <Package size={30} className="text-primary" />
+        Manage Product Listings
       </h1>
 
-      <div className="bg-white shadow-md rounded-xl p-8 border border-blue-100">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-blue-50">
-              <TableHead className="font-semibold text-blue-700">product</TableHead>
-              <TableHead className="font-semibold text-blue-700">Seller</TableHead>
-              <TableHead className="font-semibold text-blue-700">Price</TableHead>
-              <TableHead className="font-semibold text-blue-700">Status</TableHead>
-              <TableHead className="text-right font-semibold text-blue-700">
-                Actions
-              </TableHead>
-            </TableRow>
-          </TableHeader>
+      <div className="bg-white shadow-md rounded-xl p-6 border">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50">
+                <TableHead className="font-semibold text-gray-900">Product</TableHead>
+                <TableHead className="font-semibold text-gray-900">Seller</TableHead>
+                <TableHead className="font-semibold text-gray-900">Price</TableHead>
+                <TableHead className="font-semibold text-gray-900">Stock</TableHead>
+                <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                <TableHead className="text-right font-semibold text-gray-900">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
 
-          <TableBody>
-            {products?.map((product) => (
-              <TableRow
-                key={product.id}
-                className="hover:bg-blue-50/50 transition"
-              >
-                {/* product Info */}
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Image
-                      src={product.productImages?.[0]?.imageUrl || "/default-product.jpg"}
-                      alt={product.title}
-                      width={50}
-                      height={50}
-                      className="rounded-md object-cover"
-                    />
-                    <div>
-                      <div className="font-medium text-blue-900">
-                        {product.title}
+            <TableBody>
+              {products?.length > 0 ? (
+                products.map((product) => (
+                  <TableRow
+                    key={product.id}
+                    className="hover:bg-gray-50 transition"
+                  >
+                    {/* Product Info */}
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+                          {product.productImages?.[0]?.imageUrl ? (
+                            <Image
+                              src={product.productImages[0].imageUrl}
+                              alt={product.name}
+                              fill
+                              className="object-cover"
+                              sizes="48px"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="w-6 h-6 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {product.name}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {product.category?.name || "Uncategorized"}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    {/* Seller */}
+                    <TableCell>
+                      <div className="font-medium">
+                        {product.user?.name || "Unknown"}
                       </div>
                       <div className="text-xs text-gray-600">
-                        {product.category}
+                        {product.user?.email || "No email"}
                       </div>
-                    </div>
-                  </div>
-                </TableCell>
+                    </TableCell>
 
-                {/* Guide */}
-                <TableCell>
-                  <div className="font-medium">
-                    {product?.user?.name || "Unknown"}
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    {product?.user?.email || ""}
-                  </div>
-                </TableCell>
+                    {/* Price */}
+                    <TableCell className="font-semibold">
+                      {formatPrice(product.price)}
+                    </TableCell>
 
-                {/* Fee */}
-                <TableCell>${product.price}</TableCell>
+                    {/* Stock */}
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.stock > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                        {product.stock} in stock
+                      </span>
+                    </TableCell>
 
-                {/* Status */}
-                <TableCell>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${product.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                      }`}
-                  >
-                    {product.isActive ? "ACTIVE" : "INACTIVE"}
-                  </span>
-                </TableCell>
+                    {/* Status */}
+                    <TableCell>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${product.isActive
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                          }`}
+                      >
+                        {product.isActive ? "ACTIVE" : "INACTIVE"}
+                      </span>
+                    </TableCell>
 
-                {/* Actions */}
-                <TableCell className="text-right space-x-3">
-                  {/* Activate / Deactivate */}
-                  <Button
-                    onClick={() => updateStatus(product.id)}
-                    disabled={loadingId === product.id}
-                    variant={product.isActive ? "outline" : "default"}
-                    size="sm"
-                    className={`min-w-[120px] gap-2 transition-all duration-300 ${product.isActive
-                      ? "border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
-                      : "bg-green-500 text-white hover:bg-green-600"
-                      }`}
-                  >
-                    {loadingId === product.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : product.isActive ? (
-                      "Deactivate"
-                    ) : (
-                      "Activate"
-                    )}
-                  </Button>
+                    {/* Actions */}
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {/* Activate / Deactivate */}
+                        <Button
+                          onClick={() => updateStatus(product.id, product.isActive)}
+                          disabled={loadingId === product.id}
+                          variant={product.isActive ? "outline" : "default"}
+                          size="sm"
+                          className={`min-w-[100px] ${product.isActive
+                            ? "border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                            : "bg-green-500 text-white hover:bg-green-600"
+                            }`}
+                        >
+                          {loadingId === product.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : product.isActive ? (
+                            "Deactivate"
+                          ) : (
+                            "Activate"
+                          )}
+                        </Button>
 
-                  {/* View Button */}
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => viewproduct(product.slug)}
-                    title="View product"
-                  >
-                    <Eye size={19} className="text-blue-600" />
-                  </Button>
+                        {/* View Button */}
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => viewProduct(product.slug)}
+                          title="View product"
+                          className="h-8 w-8"
+                        >
+                          <Eye size={16} className="text-blue-600" />
+                        </Button>
 
-                  {/* Delete Button */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openDeleteConfirm(product.id)}
-                    disabled={loadingId === product.id}
-                    title="Delete product"
-                  >
-                    {loadingId === product.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-red-600" />
-                    ) : (
-                      <Trash2 size={19} className="text-red-600" />
-                    )}
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                        {/* Delete Button */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openDeleteConfirm(product.id)}
+                          disabled={loadingId === product.id}
+                          title="Delete product"
+                          className="h-8 w-8"
+                        >
+                          {loadingId === product.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin text-red-600" />
+                          ) : (
+                            <Trash2 size={16} className="text-red-600" />
+                          )}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                    No products found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
         {/* Total Count */}
-        <div className="pt-4 font-semibold text-blue-800">
-          Total products: {products?.length || 0}
+        <div className="pt-4 mt-4 border-t font-semibold text-gray-900">
+          Total Products: {products?.length || 0}
         </div>
       </div>
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirmOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Confirm Delete
             </h3>
@@ -323,8 +376,9 @@ export default function ManageProductListingTable({ products }: { products: any[
                 variant="outline"
                 onClick={() => {
                   setDeleteConfirmOpen(false);
-                  setproductToDelete(null);
+                  setProductToDelete(null);
                 }}
+                disabled={loadingId === productToDelete}
               >
                 Cancel
               </Button>
@@ -346,14 +400,6 @@ export default function ManageProductListingTable({ products }: { products: any[
           </div>
         </div>
       )}
-
-      {/* Debug button (remove in production) */}
-      <button 
-        onClick={debugAuth}
-        className="fixed bottom-4 right-4 bg-gray-800 text-white p-2 rounded text-xs opacity-50 hover:opacity-100"
-      >
-        Debug Auth
-      </button>
     </div>
   );
 }

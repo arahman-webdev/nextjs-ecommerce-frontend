@@ -1,21 +1,12 @@
 
-
 'use client'; // Make it a client component
 
+import MyTourBookings from "@/components/Dashboard/Guide/MyTourBookings";
+import { useRouter } from "next/navigation"
 import { useState, useEffect } from 'react';
 
-import { useRouter } from 'next/navigation';
-
-import { Metadata } from 'next';
-import ManageOrders from '@/components/Dahsboard/Admin/OrderManagement';
-
-
-
-
-
-
-export default function OrderPage() {
-  const [orders, setOrders] = useState([]);
+export default function GuideBookingPage() {
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -33,12 +24,11 @@ export default function OrderPage() {
       const token = localStorage.getItem('accessToken');
       const userRole = localStorage.getItem('userRole');
       
-      console.log('Token from localStorage:', token ? 'Found' : 'Not found');
-      console.log('User role:', userRole);
+    
       
       // Check if user is admin
-      if (userRole !== 'ADMIN') {
-        setError('Access denied. Admin privileges required.');
+      if (userRole !== 'GUIDE') {
+        setError('Access denied. Guide privileges required.');
         return;
       }
       
@@ -48,7 +38,7 @@ export default function OrderPage() {
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/orders`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/my-tours-booking`, {
         method: "GET",
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +70,9 @@ export default function OrderPage() {
         throw new Error(result.message || 'Failed to fetch users');
       }
 
-      setOrders(result.data || []);
+      setBookings(result.data || []);
+
+      console.log("my booking data", result.data)
       
     } catch (err: any) {
       console.error('Error fetching users:', err);
@@ -95,7 +87,7 @@ export default function OrderPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading orders...</p>
+          <p className="mt-4 text-gray-600">Loading bookings...</p>
         </div>
       </div>
     );
@@ -129,7 +121,5 @@ export default function OrderPage() {
     );
   }
 
-console.log("orders", orders)
-
-  return <ManageOrders orders={orders}  />;
+  return <MyTourBookings bookings={bookings}  />;
 }

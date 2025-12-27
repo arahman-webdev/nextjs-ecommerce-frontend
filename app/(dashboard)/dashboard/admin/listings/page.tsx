@@ -39,15 +39,15 @@ noStore()
 
    
 
-    const data = result?.data
+    const products = result?.data
 
-    console.log("tour listings", data)
+    console.log("tour listings", products)
     
     if (!result.success) {
       throw new Error(result.message)
     }
 
-    return <ManageProductListingTable products={data} />
+    return <ManageProductListingTable products={products} />
 
   } catch (error:any) {
     console.error("Error:", error)
