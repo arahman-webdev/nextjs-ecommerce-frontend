@@ -72,13 +72,13 @@ function LoginFormContent() {
           } catch {
             // Fallback based on role
             if (userRole === 'ADMIN') targetUrl = '/dashboard/admin'
-            else if (userRole === 'SELLER') targetUrl = '/dashboard/guide'
-            else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/tourist/profile'
+            else if (userRole === 'SELLER') targetUrl = '/dashboard/seller'
+            else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/customer/profile'
           }
         } else {
           if (userRole === 'ADMIN') targetUrl = '/dashboard/admin'
-          else if (userRole === 'SELLER') targetUrl = '/dashboard/guide'
-          else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/tourist'
+          else if (userRole === 'SELLER') targetUrl = '/dashboard/seller'
+          else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/customer'
         }
 
         router.replace(targetUrl)
@@ -99,11 +99,11 @@ function LoginFormContent() {
       email: "arahman.admin@gmail.com",
       password: "admin_password",
     },
-    tourist: {
+    customer: {
       email: "ar@gmail.com",
       password: "123456",
     },
-    guide: {
+    seller: {
       email: "hs@gmail.com",
       password: "123456",
     },
@@ -154,28 +154,28 @@ function LoginFormContent() {
         const userRole = data.data.user?.role || 'CUSTOMER'
 
         // Determine where to redirect
-        // let targetUrl = '/dashboard'
-        // if (redirectUrl) {
-        //   targetUrl = redirectUrl
-        // } else {
-        //   // No redirect param, use role-based default
-        //   switch (userRole.toUpperCase()) {
-        //     case 'ADMIN':
-        //       targetUrl = '/dashboard/admin'
-        //       break
-        //     case 'SELLER':
-        //       targetUrl = '/dashboard/guide'
-        //       break
-        //     case 'CUSTOMER':
-        //       targetUrl = '/dashboard/tourist'
-        //       break
-        //   }
-        // }
+        let targetUrl = '/dashboard'
+        if (redirectUrl) {
+          targetUrl = redirectUrl
+        } else {
+          // No redirect param, use role-based default
+          switch (userRole.toUpperCase()) {
+            case 'ADMIN':
+              targetUrl = '/dashboard/admin'
+              break
+            case 'SELLER':
+              targetUrl = '/dashboard/seller'
+              break
+            case 'CUSTOMER':
+              targetUrl = '/dashboard/customer'
+              break
+          }
+        }
 
-        // console.log('Login successful, redirecting to:', targetUrl)
+        console.log('Login successful, redirecting to:', targetUrl)
 
-        // // Use window.location for a clean redirect
-        // window.location.href = targetUrl
+        // Use window.location for a clean redirect
+        window.location.href = targetUrl
 
       } else {
         const errorMessage = data.message || "Login failed. Please check your credentials."
@@ -213,7 +213,7 @@ function LoginFormContent() {
             Welcome Back
           </h1>
           <p className="text-gray-600">
-            Sign in to continue your journey with local guides
+            Sign in to continue 
           </p>
         </div>
 
@@ -320,7 +320,7 @@ function LoginFormContent() {
 
                   <Button
                     type="button"
-                    onClick={() => fillDemo("tourist")}
+                    onClick={() => fillDemo("customer")}
                     className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     Seller
@@ -328,7 +328,7 @@ function LoginFormContent() {
 
                   <Button
                     type="button"
-                    onClick={() => fillDemo("guide")}
+                    onClick={() => fillDemo("seller")}
                     className="rounded-xl bg-green-600 hover:bg-green-700 text-white"
                   >
                     Customer

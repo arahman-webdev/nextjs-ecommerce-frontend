@@ -58,10 +58,10 @@ const navData = {
   SELLER: {
     navMain: [
       { title: "Dashboard", url: "/dashboard/seller", icon: IconLayout2 },
-      { title: "My Products", url: "/dashboard/guide/my-orders", icon: IconMap },
-      { title: "Create Porduct", url: "/dashboard/guide/create-tour", icon: IconPlus },
-      { title: "Orders Requests", url: "/dashboard/guide/bookings", icon: IconCalendar },
-      { title: "My Reviews", url: "/dashboard/guide/reviews", icon: IconStar },
+      { title: "My Products", url: "/dashboard/seller/my-orders", icon: IconMap },
+      { title: "Create Porduct", url: "/dashboard/seller/create-product", icon: IconPlus },
+      { title: "Orders Requests", url: "/dashboard/seller/orders", icon: IconCalendar },
+      { title: "My Reviews", url: "/dashboard/seller/reviews", icon: IconStar },
       { title: "Profile", url: "/dashboard/guide/profile", icon: IconUserCircle },
     ],
     navSecondary: [

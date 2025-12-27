@@ -6,6 +6,7 @@ import FeatureCard from "@/components/Home/FeatureCard";
 import HeroSlider from "@/components/Home/Hero";
 import HomeProductSlider from "@/components/Home/ProductLandingSlider";
 import ProductLandingSlider from "@/components/Home/ProductLandingSlider";
+import WatchCard from "@/components/Home/WatchCard";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
@@ -36,6 +37,7 @@ export default function Home() {
         />
       </div>
     </section>
+    <WatchCard />
     <MeetBestSeeler />
       <HomeProductSlider />
     </div>
