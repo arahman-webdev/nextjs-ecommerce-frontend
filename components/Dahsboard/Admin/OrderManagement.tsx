@@ -20,7 +20,7 @@ export default function ManageOrders({ orders }: { orders: any[] }) {
         try {
             setLoadingId(id);
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/order/${id}`, {
                 method: "DELETE",
                 credentials: "include",
             });
