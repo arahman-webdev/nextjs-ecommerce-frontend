@@ -4,9 +4,10 @@ import "../globals.css"
 
 import CartProvider from "../context/CartContext";
 import Navbar from "@/components/SharedComponent/Navbar";
-import { WishlistProvider } from "../context/WishlistContext";
+
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "@/components/SharedComponent/Footer";
+import { WishlistProvider } from "../context/WishlistContext";
 
 
 const geistSans = Geist({
@@ -36,13 +37,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CartProvider>
-
           <WishlistProvider>
             <Navbar />
             {children}
              <Toaster position="top-center" richColors />
             <Footer />
-          </WishlistProvider>
+        </WishlistProvider>
         </CartProvider>
       </body>
     </html>

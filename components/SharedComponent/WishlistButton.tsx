@@ -1,27 +1,27 @@
-"use client";
+// "use client";
 
-import { useWishlist } from "@/app/context/WishlistContext";
+// import { useWishlist } from "@/app/context/WishlistContext";
 
-const WishlistButton = ({ productId }: { productId: string }) => {
-  const {
-    isInWishlist,
-    addToWishlist,
-    removeFromWishlist
-  } = useWishlist();
+// const WishlistButton = ({ productId }: { productId: string }) => {
+//   const {
+//     isInWishlist,
+//     addToWishlist,
+//     removeFromWishlist
+//   } = useWishlist();
 
-  const liked = isInWishlist(productId);
+//   const liked = isInWishlist(productId);
 
-  return (
-    <button
-      onClick={() =>
-        liked
-          ? removeFromWishlist(productId)
-          : addToWishlist(productId)
-      }
-    >
-      {liked ? "💔" : "❤️"}
-    </button>
-  );
-};
+//   return (
+//     <button
+//       // onClick={() =>
+//         liked
+//           ? removeFromWishlist(productId)
+//           : addToWishlist(productId)
+//       }
+//     >
+//       {liked ? "💔" : "❤️"}
+//     </button>
+//   );
+// };
 
-export default WishlistButton;
+// export default WishlistButton;

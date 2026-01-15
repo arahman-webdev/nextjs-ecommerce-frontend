@@ -1,127 +1,68 @@
-"use client";
+"use client"
+import { WishlistContextType, WishlistItem } from "@/types/productType";
+import { createContext, useEffect, useState } from "react";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+const WishlistContext = createContext<WishlistContextType | null>(null)
 
-type WishlistItem = { productId: string };
-
-type WishlistContextType = {
-  wishlist: WishlistItem[];
-  isInWishlist: (productId: string) => boolean;
-  addToWishlist: (productId: string) => Promise<void>;
-  removeFromWishlist: (productId: string) => Promise<void>;
-  isLoading: boolean
-};
-
-const WishlistContext = createContext<WishlistContextType | null>(null);
+const STORAGE_KEY = "wishlist";
 
 export const WishlistProvider = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([])
 
+  // load from local storage
 
-  const getToken = () =>
-    typeof window !== "undefined"
-      ? localStorage.getItem("accessToken")
-      : null;
-
-  const isInWishlist = (productId: string) =>
-    wishlist.some(item => item.productId === productId);
-
-  /* ---------------- Add ---------------- */
-  const addToWishlist = async (productId: string) => {
-    const token = getToken();
-    if (!token) {
-      toast.error("Please login to use wishlist");
-      router.push("/login");
-      return;
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      setWishlist(JSON.parse(stored))
     }
+  }, [])
 
-    try {
-      const res = await fetch(
-        "https://ecommerce-backend-ten-dusky.vercel.app/api/product/wishlist/add",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ productId }),
-        }
-      );
 
-      if (!res.ok) throw new Error("Failed to add");
+  // Save to localStorage (sync)
 
-      setWishlist(prev =>
-        prev.some(i => i.productId === productId)
-          ? prev
-          : [...prev, { productId }]
-      );
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(wishlist))
+  }, [wishlist]);
 
-      toast.success("Added to wishlist ❤️");
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  /* ---------------- Remove ---------------- */
-  const removeFromWishlist = async (productId: string) => {
-    const token = getToken();
-    if (!token) return;
-
-    try {
-      await fetch(
-        `https://ecommerce-backend-ten-dusky.vercel.app/api/product/wishlist/remove/${productId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setWishlist(prev =>
-        prev.filter(item => item.productId !== productId)
-      );
-
-      toast.success("Removed from wishlist");
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  /* ---------------- Load on refresh ---------------- */
-useEffect(() => {
-  const token = getToken();
-  if (!token) {
-    setIsLoading(false);
-    return;
+  const add = (item: WishlistItem) => {
+    setWishlist(prev => {
+      if (prev.some(p => p.id === item.id)) return prev;
+      return [...prev, item]
+    })
   }
 
-  fetch("https://ecommerce-backend-ten-dusky.vercel.app/api/product/my-wishlist", {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-    .then(res => res.json())
-    .then(data => setWishlist(data.data ?? []))
-    .finally(() => setIsLoading(false));
-}, []);
+  const remove = (id:string) => {
+    setWishlist(prev => prev.filter(p => p.id !== id))
+  }
 
+  const toggle = (item: WishlistItem) => {
+    setWishlist(prev =>
+      prev.some(p => p.id === item.id)
+        ? prev.filter(p => p.id !== item.id)
+        : [...prev, item]
+    );
+  };
+
+  const isInWishlist = (id: string) =>
+    wishlist.some(item => item.id === id);
+
+  const clear = () => {
+    setWishlist([]);
+  };
 
   return (
-    <WishlistContext.Provider
-      value={{ wishlist,
-    isLoading,
-    isInWishlist,
-    addToWishlist,
-    removeFromWishlist }}
+    <WishlistContext.Provider 
+    value={{ wishlist,
+        count: wishlist.length,
+        add,
+        remove,
+        toggle,
+        isInWishlist,
+        clear,}}
     >
       {children}
     </WishlistContext.Provider>
-  );
-};
+  )
 
-export const useWishlist = () => {
-  const ctx = useContext(WishlistContext);
-  if (!ctx) throw new Error("useWishlist must be inside WishlistProvider");
-  return ctx;
-};
+}

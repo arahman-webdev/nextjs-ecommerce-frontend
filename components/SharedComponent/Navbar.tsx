@@ -31,7 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { CartContext } from '@/app/context/CartContext';
 import { CartContextType } from '@/types/productType';
-import { useWishlist } from '@/app/context/WishlistContext';
+
 
 type UserType = {
   id: string;
@@ -53,7 +53,7 @@ const categories = [
 ];
 
 export default function Navbar() {
-  const { wishlist, isLoading } = useWishlist();
+
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -272,11 +272,11 @@ export default function Navbar() {
                 aria-label="Wishlist"
               >
                 <Heart className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-                {!isLoading && wishlist.length > 0 && (
+                {/* {!isLoading && wishlist.length > 0 && (
                   <span className="absolute -top-1 -right-1 h-4 w-4 text-[10px] bg-primary text-white rounded-full flex items-center justify-center">
                     {wishlist.length}
                   </span>
-                )}
+                )} */}
               </Link>
 
               {/* Cart */}
