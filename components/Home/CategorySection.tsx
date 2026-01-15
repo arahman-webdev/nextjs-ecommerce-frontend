@@ -20,7 +20,12 @@ import {
   Camera,
   Music,
   Car,
-  Dumbbell
+  Dumbbell,
+  Badge,
+  Sparkles,
+  Award,
+  Shield,
+  Leaf
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -73,7 +78,7 @@ export default function CategorySection() {
         setLoading(true);
         setError(null);
         
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL;
         
         const response = await fetch(`${API_URL}/product/all-category`);
         
@@ -85,7 +90,7 @@ export default function CategorySection() {
         
         // Handle different API response formats
         let categoriesData: CategoryType[] = [];
-        
+
         if (data.success && Array.isArray(data.data)) {
           categoriesData = data.data.map((cat: any) => ({
             id: cat.id || cat._id,
@@ -170,20 +175,48 @@ export default function CategorySection() {
     );
   }
 
+
+  console.log("fetch category", categories)
+
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Section Header - Clean & Minimal */}
-      <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-          Browse Categories
-        </h2>
-        <p className="text-gray-600">
-          Find what you're looking for
-        </p>
-      </div>
+     {/* Section Header */}
+        <div className="text-center mb-16 max-w-3xl mx-auto">
+          <Badge 
+            
+            className="mb-4 px-4 py-1.5 border-primary/20 bg-primary/5 text-primary font-medium"
+          >
+            <Sparkles className="h-3 w-3 mr-2" />
+            Explore Collections
+          </Badge>
+          
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
+            Discover by <span className="text-primary">Category</span>
+          </h2>
+          
+          <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+            Browse our carefully curated collections. From tech gadgets to home essentials, 
+            find exactly what you need across {categories.length} specialized categories.
+          </p>
+          
+          <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Award className="h-4 w-4 text-primary" />
+              <span>Premium Quality</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Shield className="h-4 w-4 text-primary" />
+              <span>Verified Sellers</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Leaf className="h-4 w-4 text-primary" />
+              <span>Eco-Friendly Options</span>
+            </div>
+          </div>
+        </div>
 
       {/* Categories Grid - Simple Design */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
         {categories.map((category) => {
           const Icon = getCategoryIcon(category);
           
@@ -192,25 +225,25 @@ export default function CategorySection() {
               key={category.id}
               href={`/products?category=${category.slug}`}
               className={cn(
-                "group bg-white rounded-lg border border-gray-200",
+                "group bg-[#FBF8FB] rounded-lg border border-gray-200",
                 "p-4 transition-all duration-200",
                 "hover:border-primary hover:shadow-md",
-                "flex flex-col items-center text-center"
+                "flex flex-col items-center text-center group transition-all duration-300"
               )}
             >
               {/* Icon/Image Circle */}
               <div className={cn(
-                "w-16 h-16 rounded-full flex items-center justify-center mb-3",
-                "bg-gray-50 group-hover:bg-primary/5 transition-colors"
+                "w-52 h-52 rounded-full flex items-center justify-center mb-3",
+                "bg-[#FAFAFA] group-hover:bg-primary/5 transition-colors"
               )}>
                 {category.imageUrl ? (
-                  <div className="relative w-12 h-12">
+                  <div className="relative w-52 h-52 bg-[#FAFAFA]">
                     <Image
                       src={category.imageUrl}
                       alt={category.name}
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-contain"
+                      width={200}
+                      height={200}
+                      className="w-full h-full object-contain group-hover:scale-105 transition-all duration-400"
                       onError={(e) => {
                         // Fallback to icon if image fails to load
                         const target = e.target as HTMLImageElement;

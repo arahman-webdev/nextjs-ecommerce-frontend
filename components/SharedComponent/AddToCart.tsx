@@ -52,7 +52,7 @@ export function AddToCart({
 
     // Show loading state
     setAddingToCart(true)
-    setJustAdded(product.id) // Mark this product as just added
+   
 
     try {
       // Create the cart item
@@ -150,7 +150,7 @@ export function AddToCart({
         disabled={addingToCart || !product}
         size="sm"
         className={cn(
-          "text-white min-w-[120px] transition-all duration-300",
+          "text-white min-w-[120px] transition-all duration-300 cursor-pointer",
           addingToCart 
             ? "bg-primary/80 cursor-wait" 
             : "bg-primary hover:bg-primary/90"

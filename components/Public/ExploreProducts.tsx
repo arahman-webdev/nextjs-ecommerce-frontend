@@ -16,7 +16,7 @@ function ProductsLoading() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section Skeleton */}
-      <div className="bg-gradient-to-r from-primary/90 to-primary py-16">
+      <div className="bg-linear-to-r from-primary/90 to-primary py-16">
         <div className="container mx-auto px-4">
           <div className="h-10 bg-primary/70 rounded w-1/3 mb-4 mx-auto"></div>
           <div className="h-6 bg-primary/70 rounded w-1/2 mb-8 mx-auto"></div>
@@ -102,14 +102,16 @@ function ProductsContent() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Available categories - you can fetch these from API
-  const categories = [
-    { id: 'electronics', name: 'Electronics', icon: '💻' },
-    { id: 'fashion', name: 'Fashion', icon: '👕' },
-    { id: 'home', name: 'Home & Garden', icon: '🏠' },
-    { id: 'beauty', name: 'Beauty', icon: '💄' },
-    { id: 'sports', name: 'Sports', icon: '⚽' },
-    { id: 'books', name: 'Books', icon: '📚' },
-  ];
+const categories = [
+  { id: 'furniture', name: 'Furniture', icon: '🪑' },
+  { id: 'cooking', name: 'Cooking', icon: '🍳' },
+  { id: 'fashion', name: 'Fashion', icon: '👕' },
+  { id: 'clock', name: 'Clock', icon: '⏰' },
+  { id: 'lighting', name: 'Lighting', icon: '💡' },
+  { id: 'accessories', name: 'Accessories', icon: '👜' },
+  { id: 'books', name: 'Books', icon: '📚' },
+];
+
 
   // Build query parameters
   const buildQueryParams = () => {
@@ -141,7 +143,7 @@ function ProductsContent() {
         router.push(newUrl);
       }
 
-      const response = await fetch(`http://localhost:5000/api/product?${params.toString()}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product?${params.toString()}`);
       const data = await response.json();
       
       if (data.success) {
@@ -223,7 +225,7 @@ function ProductsContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary/90 to-primary text-white py-16">
+      <div className="bg-linear-to-r from-primary/90 to-primary text-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">

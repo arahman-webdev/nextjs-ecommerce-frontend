@@ -48,7 +48,7 @@ export default function OrderPage() {
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/orders`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order`, {
         method: "GET",
         headers: {
           'Content-Type': 'application/json',

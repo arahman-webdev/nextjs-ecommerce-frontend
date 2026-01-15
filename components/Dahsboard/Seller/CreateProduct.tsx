@@ -211,7 +211,7 @@ export default function CreateProduct() {
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/product/all-category');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/all-category`);
             const data = await response.json();
 
             if (data.success) {
@@ -302,7 +302,7 @@ export default function CreateProduct() {
             images.forEach((img) => formData.append("images", img));
 
             // Send request
-            const response = await fetch('http://localhost:5000/api/product/create', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/create`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

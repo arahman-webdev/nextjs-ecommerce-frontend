@@ -146,7 +146,7 @@ export default function ProductDetailPage() {
       setIsLoading(true);
 
       const response = await axios.get(
-        `http://localhost:5000/api/product/${slug}`
+        `${process.env.NEXT_PUBLIC_API_URL}/product/${slug}`
       );
 
       if (response.data.success) {
@@ -170,7 +170,7 @@ export default function ProductDetailPage() {
   const fetchReviews = async (productId: string) => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/product/review${productId}`
+        `${process.env.NEXT_PUBLIC_API_URL}/product/review${productId}`
       );
       if (response.data.success) {
         setReviews(response.data.data);
@@ -184,7 +184,7 @@ export default function ProductDetailPage() {
 
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/product?category=${encodeURIComponent(categoryName)}`
+        `${process.env.NEXT_PUBLIC_API_URL}/product?category=${encodeURIComponent(categoryName)}`
       );
 
       if (response.data.success) {
@@ -211,7 +211,7 @@ export default function ProductDetailPage() {
 
 
       const response = await axios.post(
-        'http://localhost:5000/api/product/wishlist/add',
+        `${process.env.NEXT_PUBLIC_API_URL}/product/wishlist/add`,
         { productId: product.id },
         {
           headers: {
@@ -287,7 +287,7 @@ export default function ProductDetailPage() {
       };
 
       const response = await axios.post(
-        `http://localhost:5000/api/product/review/${product.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/product/review/${product.id}`,
         reviewData,
         {
           headers: {

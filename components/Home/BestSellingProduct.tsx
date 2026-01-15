@@ -10,7 +10,15 @@ export default function MeetBestSeeler() {
         <div className='py-10 lg:py-24'>
             <div className="container mx-auto">
                 <div className="text-center py-6 lg:py-10">
-                    <h1 className="md:text-4xl lg:text-5xl xl:text-6xl text-3xl font-semibold text-foreground">Meet Our Best Sellers</h1>
+                    <h1 className="md:text-4xl lg:text-5xl xl:text-6xl text-3xl font-semibold text-foreground"></h1>
+                </div>
+                <div className="text-center mb-10">
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+                        Meet Our Best  <span className="text-primary">Selleing Products</span>
+                    </h2>
+                    <p className="text-gray-600 max-w-2xl mx-auto">
+                        Discover our carefully curated selection of premium products
+                    </p>
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 md:gap-7 lg:gap-16'>
                     <div className='lg:pl-32 pb-6 lg:pb-12'>
@@ -23,7 +31,7 @@ export default function MeetBestSeeler() {
                                 className='w-full h-auto object-contain'
                             />
                         </div>
-                        
+
                     </div>
                     <div className='flex gap-16 lg:flex-row flex-col space-y-4'>
                         <div className='w-full md:max-w-[450px]'>

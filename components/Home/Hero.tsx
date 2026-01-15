@@ -17,65 +17,58 @@ import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 import type { Swiper as SwiperType } from 'swiper';
 
+// https://i.ibb.co.com/6c6QxT95/laptop-2.jpg
+// https://i.ibb.co.com/s9J0Z07h/sony-virtual-2.jpg
+
 // Hero slides data
 const heroSlides = [
   {
     id: 1,
-    title: "Summer Collection 2024",
-    subtitle: "Up to 50% OFF",
-    description: "Discover the latest trends in fashion with our exclusive summer collection",
-    image: "https://i.ibb.co.com/6cyVH1Xv/facility2.jpg", // Replace with your images
-    imageAlt: "Summer Fashion Collection",
+    title: "Panton Tunior Chair",
+    subtitle: "Stylish & Comfortable",
+    description: "Discover the Panton Tunior Chair: sleek, modern, and ergonomically designed for comfort and elegance. Perfect for home or office, this chair blends style with durability.",
+    image: "https://res.cloudinary.com/dvx6vfu8y/image/upload/v1766900865/product-images/gqy3ogif3gb1oclmdu2o.jpg",
+    imageAlt: "Panton Tunior Chair",
     buttonText: "Shop Now",
-    buttonLink: "/collections/summer",
+    buttonLink: "/products/panton-tunior-chair",
     bgColor: "from-blue-50 to-cyan-50",
     textColor: "text-blue-900",
-    badge: "New Arrivals",
+    badge: "New Arrival",
     badgeColor: "bg-blue-500",
   },
   {
     id: 2,
-    title: "Electronics Sale",
-    subtitle: "Flash Sale - Limited Time",
-    description: "Get the best deals on smartphones, laptops, and smart devices",
-    image: "/api/placeholder/1200/600",
-    imageAlt: "Electronics Sale",
-    buttonText: "View Deals",
-    buttonLink: "/collections/electronics",
+    title: "Smart Watches Wood Edition",
+    subtitle: "Tech Meets Nature",
+    description: "Combine technology and sustainability with our Smart Watches Wood Edition. Track fitness, receive notifications, and enjoy a unique wood finish that stands out.",
+    image: "https://res.cloudinary.com/dvx6vfu8y/image/upload/v1766901439/product-images/fiws309sfl2aawi2ehdx.jpg",
+    imageAlt: "Smart Watches Wood Edition",
+    buttonText: "View Product",
+    buttonLink: "/products/smart-watches-wood-edition",
     bgColor: "from-purple-50 to-pink-50",
     textColor: "text-purple-900",
-    badge: "Hot Deals",
+    badge: "Trending",
     badgeColor: "bg-purple-500",
   },
+ 
+
   {
     id: 3,
-    title: "Home & Living",
-    subtitle: "Transform Your Space",
-    description: "Premium quality furniture and home decor at affordable prices",
-    image: "https://res.cloudinary.com/dvx6vfu8y/image/upload/v1766113194/products/zbw1fk1ynxramjaumurc.jpg",
-    imageAlt: "Home Decor",
-    buttonText: "Explore",
-    buttonLink: "/collections/home",
-    bgColor: "from-amber-50 to-orange-50",
-    textColor: "text-amber-900",
-    badge: "Best Sellers",
-    badgeColor: "bg-amber-500",
+    title: "iPhone Dock",
+    subtitle: "Charge in Style",
+    description: "Keep your iPhone secure and powered up with our sleek iPhone Dock. Compact, elegant, and perfect for desks or nightstands.",
+    image: "https://res.cloudinary.com/dvx6vfu8y/image/upload/v1766900146/product-images/crbfxdcne7t15x8hhzbz.jpg",
+    imageAlt: "iPhone Dock",
+    buttonText: "Buy Now",
+    buttonLink: "/products/iphone-dock",
+    bgColor: "from-yellow-50 to-red-50",
+    textColor: "text-red-900",
+    badge: "Hot",
+    badgeColor: "bg-red-500",
   },
-  {
-    id: 4,
-    title: "Fitness & Sports",
-    subtitle: "Stay Active, Stay Healthy",
-    description: "Professional gear for your fitness journey and outdoor adventures",
-    image: "https://i.ibb.co.com/6RWTs176/slider-main-demo-1.jpg",
-    imageAlt: "Sports Equipment",
-    buttonText: "Get Fit",
-    buttonLink: "/collections/sports",
-    bgColor: "from-emerald-50 to-green-50",
-    textColor: "text-emerald-900",
-    badge: "Trending",
-    badgeColor: "bg-emerald-500",
-  },
+
 ];
+
 
 // Feature cards
 const features = [
@@ -169,7 +162,7 @@ export default function HeroSlider() {
     <div className="relative">
       {/* Main Hero Slider */}
       <div 
-        className="relative overflow-hidden bg-[#F8F8F8] rounded-2xl mx-4 lg:mx-auto w-full mt-4 py-16 "
+        className="relative overflow-hidden bg-[#FBFBFB] rounded-2xl mx-4 lg:mx-auto w-full mt-4 py-16 "
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -276,31 +269,32 @@ export default function HeroSlider() {
                     </div>
 
                     {/* Image */}
-                    <div className="relative hidden md:block">
-                      <div className="relative w-full h-full">
-                        <div className="absolute -right-4 -top-4 bg-[#F8F8F8] to-transparent rounded-full blur-3xl"></div>
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          <div className="w-lg -mt-6 h-full rounded-2xl overflow-hidden transform  hover:rotate-0 transition-transform duration-500">
-                            <Image
-                              src={slide.image}
-                              alt={slide.imageAlt}
-                              width={700}
-                              height={700}
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          {/* Floating Badges */}
-                          <div className="absolute -left-4 top-8 bg-white p-3 rounded-xl shadow-lg">
-                            <div className="text-2xl font-bold text-primary">50%</div>
-                            <div className="text-xs text-gray-500">OFF</div>
-                          </div>
-                          <div className="absolute -right-4 bottom-8 bg-white p-3 rounded-xl shadow-lg">
-                            <div className="text-xs font-semibold text-gray-900">Limited</div>
-                            <div className="text-xs text-gray-500">Time Offer</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                   <div className="relative hidden md:block">
+  <div className="relative w-full h-[420px] flex items-center justify-center">
+    <div className="max-w-lg w-full rounded-2xl overflow-hidden">
+      <Image
+        src={slide.image}
+        alt={slide.imageAlt}
+        width={700}
+        height={700}
+        priority
+        className="w-full h-full object-contain"
+      />
+    </div>
+
+    {/* Floating badges */}
+    <div className="absolute left-0 top-8 bg-white p-3 rounded-xl shadow-lg">
+      <div className="text-2xl font-bold text-primary">50%</div>
+      <div className="text-xs text-gray-500">OFF</div>
+    </div>
+
+    <div className="absolute right-0 bottom-8 bg-white p-3 rounded-xl shadow-lg">
+      <div className="text-xs font-semibold">Limited</div>
+      <div className="text-xs text-gray-500">Offer</div>
+    </div>
+  </div>
+</div>
+
                   </div>
                 </div>
               </div>
@@ -346,7 +340,7 @@ export default function HeroSlider() {
 
       {/* Features Section */}
       <div className="container mx-auto px-4 mt-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {features.map((feature, index) => (
             <div 
               key={index}
@@ -364,91 +358,10 @@ export default function HeroSlider() {
         </div>
       </div>
 
-      {/* Trending Products Section */}
-      <div className="container mx-auto px-4 mt-12">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-              Trending <span className="text-primary">Products</span>
-            </h2>
-            <p className="text-gray-600">Best selling products this week</p>
-          </div>
-          <Link 
-            href="/products" 
-            className="text-primary hover:text-primary/80 font-semibold flex items-center gap-2"
-          >
-            View All
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {trendingProducts.map((product) => (
-            <Link
-              key={product.id}
-              href={`/products/${product.id}`}
-              className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="relative h-48 overflow-hidden">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  width={400}
-                  height={300}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute top-3 left-3 bg-primary text-white px-2 py-1 rounded text-xs font-semibold">
-                  SALE
-                </div>
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-semibold">
-                  {product.category}
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-900 group-hover:text-primary transition-colors">
-                  {product.name}
-                </h3>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex text-amber-400">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={cn(
-                            "h-4 w-4",
-                            i < Math.floor(product.rating) 
-                              ? "fill-amber-400 text-amber-400" 
-                              : "text-gray-300"
-                          )}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">{product.rating}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-primary">
-                      {product.price}
-                    </span>
-                    <span className="text-sm text-gray-400 line-through">
-                      {product.originalPrice}
-                    </span>
-                  </div>
-                </div>
-                <Button 
-                  className="w-full mt-4 bg-primary hover:bg-primary/90"
-                  size="sm"
-                >
-                  <ShoppingBag className="mr-2 h-4 w-4" />
-                  Add to Cart
-                </Button>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
+     
 
       {/* Newsletter Section */}
-      <div className="container mx-auto px-4 mt-12">
+      {/* <div className="container mx-auto px-4 mt-12">
         <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-8 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
             Stay Updated with Deals
@@ -470,7 +383,7 @@ export default function HeroSlider() {
             </Button>
           </form>
         </div>
-      </div>
+      </div> */}
 
       {/* CSS for custom animations */}
       <style jsx global>{`

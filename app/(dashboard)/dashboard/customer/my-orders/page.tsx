@@ -1,6 +1,7 @@
 // app/dashboard/seller/orders/page.tsx
 'use client';
 
+import CusotmerOrders from "@/components/Dahsboard/Customer/MyOrders";
 import SellerOrders from "@/components/Dahsboard/Seller/MyOrders";
 import { Order } from "@/types/order";
 import { useRouter } from "next/navigation";
@@ -33,7 +34,7 @@ export default function SellerOrdersPage() {
       console.log('Fetching orders - Token:', token ? 'Found' : 'Not found', 'Role:', userRole);
       
       // Check if user is seller
-      if (!['SELLER', 'ADMIN'].includes(userRole || '')) {
+      if (!['CUSTOMER'].includes(userRole || '')) {
         setError('Access denied. Seller privileges required.');
         toast.error('Access denied. Seller privileges required.');
         setTimeout(() => router.push('/dashboard'), 2000);
@@ -47,7 +48,7 @@ export default function SellerOrdersPage() {
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/seller-orders`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/my-orders`, {
         method: "GET",
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +110,7 @@ export default function SellerOrdersPage() {
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/${orderId}/status`, {
+      const res = await fetch(`NEXT_PUBLIC_API_URL/order/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -209,5 +210,5 @@ export default function SellerOrdersPage() {
     );
   }
 
-  return <SellerOrders orders={orders} onStatusUpdate={updateOrderStatus} onRefresh={fetchOrders} />;
+  return <CusotmerOrders orders={orders} onStatusUpdate={updateOrderStatus} onRefresh={fetchOrders} />;
 }

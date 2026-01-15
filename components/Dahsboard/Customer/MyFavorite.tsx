@@ -68,7 +68,7 @@ export default function MyFavorites() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/wishlist/my-wishlist', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/my-wishlist`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -123,7 +123,7 @@ export default function MyFavorites() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/wishlist/remove/${productId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/remove/${productId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -168,16 +168,7 @@ export default function MyFavorites() {
       // This is a simplified version - you might need to adjust based on your cart API
       toast.success(`${productName} added to cart!`);
       
-      // Here you would call your cart API
-      // Example:
-      // await fetch('http://localhost:5000/api/cart/add', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({ productId, quantity: 1 })
-      // });
+     
       
     } catch (error) {
       console.error('Error adding to cart:', error);

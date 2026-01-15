@@ -36,10 +36,8 @@ import Link from "next/link"
 import Image from "next/image"
 import logo from "@/images/best-seller-1.png"
 
-
-import { redirect } from "next/dist/server/api-utils";
-import { IUser } from "@/types/user";
 import { getMyProfile } from "@/app/utills/auth";
+import { IUserProps } from "@/types/user";
 
 
 const navData = {
@@ -93,7 +91,7 @@ const navData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
-  const [user, setUser] = React.useState<IUser | null>(null)
+  const [user, setUser] = React.useState<IUserProps | null>(null)
   const [loading, setLoading] = React.useState(true)
 
   React.useEffect(() => {
@@ -120,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const data = navData[role]
 
 
-
+console.log("from app sidebar", role)
 
 
   return (

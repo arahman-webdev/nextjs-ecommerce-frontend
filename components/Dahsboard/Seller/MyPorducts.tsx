@@ -80,7 +80,7 @@ export default function MyProductListing({ products, onRefresh }: MyProductListi
       }
 
       const res = await fetch(
-        `http://localhost:5000/api/product/status/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/product/status/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -135,7 +135,7 @@ export default function MyProductListing({ products, onRefresh }: MyProductListi
       }
 
       const res = await fetch(
-        `http://localhost:5000/api/product/${id}`,
+        `NEXT_PUBLIC_API_URL/product/${id}`,
         {
           method: "DELETE",
           headers: {

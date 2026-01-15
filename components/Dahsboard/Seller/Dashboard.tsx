@@ -1,4 +1,3 @@
-// components/Dahsboard/Seller/Dashboard/index.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -27,7 +26,106 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 
-// Define interfaces
+// Define interfaces based on your actual API data
+interface Order {
+  id: string;
+  orderNumber: string;
+  userId: string;
+  subtotal: number;
+  shippingFee: number;
+  tax: number;
+  discount: number;
+  totalAmount: number;
+  status: string;
+  shippingMethod: string;
+  trackingNumber: string | null;
+  carrier: string | null;
+  estimatedDelivery: string | null;
+  customerNotes: string;
+  createdAt: string;
+  updatedAt: string;
+  items: OrderItem[];
+  payment: Payment;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+interface OrderItem {
+  id: string;
+  orderId: string;
+  productId: string;
+  quantity: number;
+  price: number;
+  name: string;
+  variantId: string | null;
+  createdAt: string;
+  product: Product;
+  variant: any;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  price: number;
+  stock: number;
+  userId: string;
+  categoryId: string;
+  metaTitle: string;
+  metaDescription: string;
+  weight: number | null;
+  width: number | null;
+  height: number | null;
+  length: number | null;
+  isActive: boolean;
+  isFeatured: boolean;
+  averageRating: number;
+  reviewCount: number;
+  totalOrders: number;
+  createdAt: string;
+  updatedAt: string;
+  productImages: ProductImage[];
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    profilePhoto: string | null;
+    role: string;
+  };
+  category: {
+    id: string;
+    name: string;
+    createdAt: string;
+  };
+}
+
+interface ProductImage {
+  id: string;
+  imageUrl: string;
+  imageId: string;
+  productId: string;
+  createdAt: string;
+}
+
+interface Payment {
+  id: string;
+  orderId: string;
+  amount: number;
+  method: string;
+  status: string;
+  transactionId: string;
+  valId: string | null;
+  bankTransaction: string | null;
+  cardLast4: string | null;
+  cardBrand: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface DashboardStats {
   totalProducts: number;
   activeProducts: number;
@@ -37,15 +135,6 @@ interface DashboardStats {
   thisMonthRevenue: number;
   totalCustomers: number;
   conversionRate: number;
-}
-
-interface RecentOrder {
-  id: string;
-  orderNumber: string;
-  customerName: string;
-  amount: number;
-  status: string;
-  date: string;
 }
 
 interface ProductPerformance {
@@ -74,7 +163,7 @@ export default function SellerDashboard() {
     totalCustomers: 0,
     conversionRate: 0
   });
-  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [productPerformance, setProductPerformance] = useState<ProductPerformance[]>([]);
   const [salesData, setSalesData] = useState<SalesData[]>([]);
 
@@ -85,13 +174,23 @@ export default function SellerDashboard() {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0
+      minimumFractionDigits: amount % 1 === 0 ? 0 : 2
     }).format(amount);
   };
 
   // Format number
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('en-US').format(num);
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   // Get status color
@@ -114,6 +213,136 @@ export default function SellerDashboard() {
     }
   };
 
+  // Get status icon
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return <Clock className="h-3 w-3" />;
+      case 'PROCESSING':
+        return <RefreshCw className="h-3 w-3" />;
+      case 'SHIPPED':
+        return <Truck className="h-3 w-3" />;
+      case 'DELIVERED':
+        return <CheckCircle className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
+
+  // Process product data for chart
+  const processProductData = (orders: Order[]) => {
+    const productMap = new Map<string, { orders: number; revenue: number; name: string }>();
+    
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        const existing = productMap.get(item.productId);
+        if (existing) {
+          existing.orders += 1;
+          existing.revenue += item.price * item.quantity;
+        } else {
+          productMap.set(item.productId, {
+            name: item.name,
+            orders: 1,
+            revenue: item.price * item.quantity
+          });
+        }
+      });
+    });
+    
+    return Array.from(productMap.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+  };
+
+  // Process sales data for chart
+  const processSalesData = (orders: Order[]) => {
+    const monthMap = new Map<string, { sales: number; orders: number }>();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    orders.forEach(order => {
+      const date = new Date(order.createdAt);
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+      const monthName = monthNames[date.getMonth()];
+      
+      const existing = monthMap.get(monthKey);
+      if (existing) {
+        existing.sales += order.totalAmount;
+        existing.orders += 1;
+      } else {
+        monthMap.set(monthKey, {
+          sales: order.totalAmount,
+          orders: 1
+        });
+      }
+    });
+    
+    // Get last 6 months
+    const result: SalesData[] = [];
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(now.getMonth() - i);
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+      const monthName = monthNames[date.getMonth()];
+      
+      const data = monthMap.get(monthKey);
+      result.push({
+        month: monthName,
+        sales: data?.sales || 0,
+        orders: data?.orders || 0
+      });
+    }
+    
+    return result;
+  };
+
+  // Calculate dashboard stats from API data
+  const calculateStats = (orders: Order[], products: Product[]) => {
+    const totalProducts = products.length;
+    const activeProducts = products.filter(p => p.isActive).length;
+    const totalOrders = orders.length;
+    
+    const pendingOrders = orders.filter(order => 
+      ['PENDING', 'PROCESSING'].includes(order.status)
+    ).length;
+    
+    const totalRevenue = orders
+      .filter(order => ['DELIVERED', 'COMPLETED'].includes(order.status))
+      .reduce((sum, order) => sum + order.totalAmount, 0);
+    
+    // Calculate this month revenue
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    
+    const thisMonthRevenue = orders
+      .filter(order => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate.getMonth() === thisMonth && 
+               orderDate.getFullYear() === thisYear &&
+               ['DELIVERED', 'COMPLETED'].includes(order.status);
+      })
+      .reduce((sum, order) => sum + order.totalAmount, 0);
+    
+    // Get unique customers
+    const uniqueCustomers = new Set(orders.map(order => order.userId)).size;
+    
+    // Calculate conversion rate (simplified)
+    const conversionRate = totalOrders > 0 ? (totalOrders / 100) * 100 : 0;
+    
+    return {
+      totalProducts,
+      activeProducts,
+      totalOrders,
+      pendingOrders,
+      totalRevenue,
+      thisMonthRevenue,
+      totalCustomers: uniqueCustomers,
+      conversionRate: parseFloat(conversionRate.toFixed(1))
+    };
+  };
+
   // Fetch dashboard data
   const fetchDashboardData = async () => {
     try {
@@ -127,8 +356,8 @@ export default function SellerDashboard() {
         return;
       }
 
-      // Fetch dashboard stats
-      const statsRes = await fetch('http://localhost:5000/api/seller/dashboard/stats', {
+      // Fetch seller orders
+      const ordersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/seller-orders`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -136,21 +365,32 @@ export default function SellerDashboard() {
         }
       });
 
-      if (statsRes.status === 401) {
+      if (ordersRes.status === 401) {
         localStorage.clear();
         toast.error('Session expired. Please login again.');
         router.push('/login');
         return;
       }
 
-      const statsData = await statsRes.json();
-      
-      if (statsData.success) {
-        setStats(statsData.data);
+      let ordersData: Order[] = [];
+      if (ordersRes.ok) {
+        const data = await ordersRes.json();
+        console.log('Orders API response:', data);
+        
+        if (Array.isArray(data)) {
+          ordersData = data;
+        } else if (data.data && Array.isArray(data.data)) {
+          ordersData = data.data;
+        } else if (data.orders && Array.isArray(data.orders)) {
+          ordersData = data.orders;
+        } else if (data.result && Array.isArray(data.result)) {
+          ordersData = data.result;
+        }
       }
+      
 
-      // Fetch recent orders
-      const ordersRes = await fetch('http://localhost:5000/api/order/seller-orders?limit=5', {
+      // Fetch seller products
+      const productsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/my-products`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -158,27 +398,41 @@ export default function SellerDashboard() {
         }
       });
 
-      if (ordersRes.ok) {
-        const ordersData = await ordersRes.json();
-        if (ordersData.success && ordersData.data) {
-          const recent = ordersData.data.slice(0, 5).map((order: any) => ({
-            id: order.id,
-            orderNumber: order.orderNumber,
-            customerName: order.user?.name || 'Customer',
-            amount: order.totalAmount,
-            status: order.status,
-            date: new Date(order.createdAt).toLocaleDateString()
-          }));
-          setRecentOrders(recent);
+      let productsData: Product[] = [];
+      if (productsRes.ok) {
+        const data = await productsRes.json();
+        console.log('Products API response:', data);
+        
+        if (Array.isArray(data)) {
+          productsData = data;
+        } else if (data.data && Array.isArray(data.data)) {
+          productsData = data.data;
+        } else if (data.products && Array.isArray(data.products)) {
+          productsData = data.products;
+        } else if (data.result && Array.isArray(data.result)) {
+          productsData = data.result;
         }
       }
 
-      // Generate sample data for charts (replace with actual API calls)
-      generateSampleChartData();
+      // Calculate stats from fetched data
+      const calculatedStats = calculateStats(ordersData, productsData);
+      setStats(calculatedStats);
+
+      // Set recent orders (latest 5)
+      setRecentOrders(ordersData.slice(0, 5));
+
+      // Process data for charts
+      const productPerformanceData = processProductData(ordersData);
+      setProductPerformance(productPerformanceData);
+
+      const salesData = processSalesData(ordersData);
+      setSalesData(salesData);
 
     } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
-      // Use sample data for demo
+      toast.error('Failed to load dashboard data');
+      
+      // Use fallback sample data for demo
       generateSampleData();
     } finally {
       setLoading(false);
@@ -186,53 +440,109 @@ export default function SellerDashboard() {
     }
   };
 
-  // Generate sample data for demo
+  // Generate sample data for demo (fallback)
   const generateSampleData = () => {
     setStats({
-      totalProducts: 24,
-      activeProducts: 18,
-      totalOrders: 156,
-      pendingOrders: 12,
-      totalRevenue: 12560,
-      thisMonthRevenue: 2340,
-      totalCustomers: 89,
-      conversionRate: 3.2
+      totalProducts: 12,
+      activeProducts: 10,
+      totalOrders: 48,
+      pendingOrders: 3,
+      totalRevenue: 3250,
+      thisMonthRevenue: 850,
+      totalCustomers: 32,
+      conversionRate: 2.5
     });
 
-    setRecentOrders([
-      { id: '1', orderNumber: 'ORD-001', customerName: 'John Doe', amount: 245, status: 'DELIVERED', date: '2024-01-15' },
-      { id: '2', orderNumber: 'ORD-002', customerName: 'Jane Smith', amount: 189, status: 'SHIPPED', date: '2024-01-14' },
-      { id: '3', orderNumber: 'ORD-003', customerName: 'Robert Johnson', amount: 320, status: 'PROCESSING', date: '2024-01-14' },
-      { id: '4', orderNumber: 'ORD-004', customerName: 'Sarah Williams', amount: 145, status: 'PENDING', date: '2024-01-13' },
-      { id: '5', orderNumber: 'ORD-005', customerName: 'Michael Brown', amount: 275, status: 'CONFIRMED', date: '2024-01-12' }
-    ]);
-
-    generateSampleChartData();
-  };
-
-  // Generate sample chart data
-  const generateSampleChartData = () => {
-    // Product performance data
-    const performanceData: ProductPerformance[] = [
-      { name: 'Office Chair', orders: 45, revenue: 5400 },
-      { name: 'Desk Lamp', orders: 32, revenue: 2560 },
-      { name: 'Mouse Pad', orders: 28, revenue: 840 },
-      { name: 'Webcam', orders: 22, revenue: 4400 },
-      { name: 'Headphones', orders: 19, revenue: 3800 }
+    const sampleOrders: Order[] = [
+      {
+        id: '1',
+        orderNumber: 'ORD-20250101-001',
+        userId: '1',
+        subtotal: 245,
+        shippingFee: 10,
+        tax: 15,
+        discount: 0,
+        totalAmount: 270,
+        status: 'DELIVERED',
+        shippingMethod: 'STANDARD',
+        trackingNumber: 'TRK123456',
+        carrier: 'UPS',
+        estimatedDelivery: '2024-01-05',
+        customerNotes: '',
+        createdAt: '2024-01-01T10:30:00Z',
+        updatedAt: '2024-01-05T14:20:00Z',
+        items: [
+          {
+            id: 'item1',
+            orderId: '1',
+            productId: 'p1',
+            quantity: 1,
+            price: 245,
+            name: 'Smart Watch',
+            variantId: null,
+            createdAt: '2024-01-01T10:30:00Z',
+            product: {
+              id: 'p1',
+              name: 'Smart Watch',
+              slug: 'smart-watch',
+              description: 'Smart watch with fitness tracking',
+              price: 245,
+              stock: 50,
+              userId: 'seller1',
+              categoryId: 'cat1',
+              metaTitle: 'Smart Watch',
+              metaDescription: 'Smart watch with fitness tracking',
+              weight: null,
+              width: null,
+              height: null,
+              length: null,
+              isActive: true,
+              isFeatured: false,
+              averageRating: 4.5,
+              reviewCount: 10,
+              totalOrders: 15,
+              createdAt: '2024-01-01T10:30:00Z',
+              updatedAt: '2024-01-01T10:30:00Z',
+              productImages: [],
+              user: {
+                id: 'seller1',
+                name: 'John Seller',
+                email: 'john@seller.com',
+                profilePhoto: null,
+                role: 'SELLER'
+              },
+              category: {
+                id: 'cat1',
+                name: 'Electronics',
+                createdAt: '2024-01-01T10:30:00Z'
+              }
+            },
+            variant: null
+          }
+        ],
+        payment: {
+          id: 'pay1',
+          orderId: '1',
+          amount: 270,
+          method: 'CREDIT_CARD',
+          status: 'COMPLETED',
+          transactionId: 'TXN123456',
+          valId: null,
+          bankTransaction: null,
+          cardLast4: '1234',
+          cardBrand: 'Visa',
+          createdAt: '2024-01-01T10:30:00Z',
+          updatedAt: '2024-01-01T10:30:00Z'
+        },
+        user: {
+          id: 'cust1',
+          name: 'John Doe',
+          email: 'john@example.com'
+        }
+      }
     ];
-    setProductPerformance(performanceData);
 
-    // Sales data for the last 6 months
-    const monthlySales: SalesData[] = [
-      { month: 'Jul', sales: 4200, orders: 28 },
-      { month: 'Aug', sales: 5200, orders: 35 },
-      { month: 'Sep', sales: 5800, orders: 42 },
-      { month: 'Oct', sales: 6100, orders: 45 },
-      { month: 'Nov', sales: 7200, orders: 52 },
-      { month: 'Dec', sales: 8900, orders: 64 },
-      { month: 'Jan', sales: 9400, orders: 68 }
-    ];
-    setSalesData(monthlySales);
+    setRecentOrders(sampleOrders);
   };
 
   useEffect(() => {
@@ -282,8 +592,10 @@ export default function SellerDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" 
-               style={{ borderColor: primaryColor }}></div>
+          <div 
+            className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" 
+            style={{ borderColor: primaryColor }}
+          ></div>
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
@@ -338,7 +650,9 @@ export default function SellerDashboard() {
                 {stats.activeProducts} Active
               </Badge>
               <div className="text-xs text-gray-500">
-                {Math.round((stats.activeProducts / stats.totalProducts) * 100)}% active
+                {stats.totalProducts > 0 
+                  ? Math.round((stats.activeProducts / stats.totalProducts) * 100) 
+                  : 0}% active
               </div>
             </div>
           </CardContent>
@@ -406,7 +720,7 @@ export default function SellerDashboard() {
               {formatNumber(stats.totalCustomers)}
             </div>
             <div className="text-xs text-gray-500 mt-2">
-              Serving customers worldwide
+              {stats.totalCustomers > 0 ? 'Serving customers' : 'No customers yet'}
             </div>
           </CardContent>
         </Card>
@@ -422,47 +736,55 @@ export default function SellerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="month" 
-                    stroke="#666"
-                    tick={{ fill: '#666', fontSize: 12 }}
-                  />
-                  <YAxis 
-                    stroke="#666"
-                    tick={{ fill: '#666', fontSize: 12 }}
-                    tickFormatter={(value) => `$${value}`}
-                  />
-                  <Tooltip 
-                    formatter={(value) => [`$${value}`, 'Sales']}
-                    labelFormatter={(label) => `Month: ${label}`}
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px'
-                    }}
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="sales" 
-                    stroke={primaryColor}
-                    strokeWidth={2}
-                    activeDot={{ r: 6 }}
-                    name="Sales ($)"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="orders" 
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    activeDot={{ r: 6 }}
-                    name="Orders"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {salesData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={salesData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="month" 
+                      stroke="#666"
+                      tick={{ fill: '#666', fontSize: 12 }}
+                    />
+                    <YAxis 
+                      stroke="#666"
+                      tick={{ fill: '#666', fontSize: 12 }}
+                      tickFormatter={(value) => `$${value}`}
+                    />
+                    <Tooltip 
+                      formatter={(value: any) => [`$${value}`, 'Sales']}
+                      labelFormatter={(label) => `Month: ${label}`}
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px'
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="sales" 
+                      stroke={primaryColor}
+                      strokeWidth={2}
+                      activeDot={{ r: 6 }}
+                      name="Sales ($)"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="orders" 
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      activeDot={{ r: 6 }}
+                      name="Orders"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                  <BarChart3 className="h-12 w-12 mb-2" />
+                  <p>No sales data available</p>
+                  <p className="text-sm">Start selling to see your performance</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -475,48 +797,56 @@ export default function SellerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={productPerformance}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="name" 
-                    stroke="#666"
-                    tick={{ fill: '#666', fontSize: 12 }}
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                  />
-                  <YAxis 
-                    stroke="#666"
-                    tick={{ fill: '#666', fontSize: 12 }}
-                    tickFormatter={(value) => `$${value}`}
-                  />
-                  <Tooltip 
-                    formatter={(value, name) => {
-                      if (name === 'revenue') return [`$${value}`, 'Revenue'];
-                      return [value, 'Orders'];
-                    }}
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px'
-                    }}
-                  />
-                  <Legend />
-                  <Bar 
-                    dataKey="revenue" 
-                    fill={primaryColor}
-                    name="Revenue ($)"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar 
-                    dataKey="orders" 
-                    fill="#3b82f6"
-                    name="Orders"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              {productPerformance.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={productPerformance}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="name" 
+                      stroke="#666"
+                      tick={{ fill: '#666', fontSize: 12 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis 
+                      stroke="#666"
+                      tick={{ fill: '#666', fontSize: 12 }}
+                      tickFormatter={(value) => `$${value}`}
+                    />
+                    <Tooltip 
+                      formatter={(value: any, name: string) => {
+                        if (name === 'revenue') return [`$${value}`, 'Revenue'];
+                        return [value, 'Orders'];
+                      }}
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px'
+                      }}
+                    />
+                    <Legend />
+                    <Bar 
+                      dataKey="revenue" 
+                      fill={primaryColor}
+                      name="Revenue ($)"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar 
+                      dataKey="orders" 
+                      fill="#3b82f6"
+                      name="Orders"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                  <Package className="h-12 w-12 mb-2" />
+                  <p>No product performance data</p>
+                  <p className="text-sm">Make sales to see top products</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -542,42 +872,56 @@ export default function SellerDashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" 
-                         style={{ backgroundColor: `${primaryColor}20` }}>
-                      <ShoppingBag className="h-5 w-5" style={{ color: primaryColor }} />
-                    </div>
-                    <div>
-                      <div className="font-medium">{order.orderNumber}</div>
-                      <div className="text-sm text-gray-600">{order.customerName}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="font-bold">{formatCurrency(order.amount)}</div>
-                    <div className="text-sm text-gray-600">{order.date}</div>
-                  </div>
-                  
-                  <Badge className={getStatusColor(order.status)}>
-                    {order.status}
-                  </Badge>
-                  
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => router.push(`/dashboard/seller/orders/${order.id}`)}
+            {recentOrders.length > 0 ? (
+              <div className="space-y-4">
+                {recentOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 transition-colors"
                   >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center" 
+                          style={{ backgroundColor: `${primaryColor}20` }}>
+                        <ShoppingBag className="h-5 w-5" style={{ color: primaryColor }} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">{order.orderNumber}</div>
+                        <div className="text-sm text-gray-600">
+                          {order.user?.name || 'Customer'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right mx-4">
+                      <div className="font-bold">{formatCurrency(order.totalAmount)}</div>
+                      <div className="text-sm text-gray-600">{formatDate(order.createdAt)}</div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Badge className={`${getStatusColor(order.status)} flex items-center gap-1`}>
+                        {getStatusIcon(order.status)}
+                        {order.status}
+                      </Badge>
+                      
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => router.push(`/dashboard/seller/orders/${order.id}`)}
+                        title="View order details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <ShoppingBag className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600">No recent orders</p>
+                <p className="text-sm text-gray-500 mt-1">Start selling to see orders here</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -634,7 +978,7 @@ export default function SellerDashboard() {
                     <span className="text-sm">Ready to Ship</span>
                   </div>
                   <Badge variant="outline" className="bg-blue-50">
-                    {recentOrders.filter(o => o.status === 'CONFIRMED').length}
+                    {recentOrders.filter(o => o.status === 'CONFIRMED' || o.status === 'PROCESSING').length}
                   </Badge>
                 </div>
               </div>

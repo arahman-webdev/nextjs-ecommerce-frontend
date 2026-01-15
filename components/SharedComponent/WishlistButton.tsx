@@ -19,7 +19,7 @@ const WishlistButton = ({ productId }: { productId: string }) => {
           : addToWishlist(productId)
       }
     >
-      {liked ? "💔 Remove" : "❤️ Add"}
+      {liked ? "💔" : "❤️"}
     </button>
   );
 };

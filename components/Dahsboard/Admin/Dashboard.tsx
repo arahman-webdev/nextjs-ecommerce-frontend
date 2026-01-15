@@ -137,20 +137,20 @@ export default function AdminDashboard() {
 
             // Fetch data from all APIs
             const [usersRes, productsRes, ordersRes] = await Promise.all([
-                fetch('http://localhost:5000/api/auth/users', {
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/users`, {
                     method: "GET",
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
                     },
                 }),
-                fetch('http://localhost:5000/api/product', {
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/product`, {
                     method: "GET",
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
                 }),
-                fetch('http://localhost:5000/api/order', {
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/order`, {
                     method: "GET",
                     headers: {
                         'Content-Type': 'application/json',

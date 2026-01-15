@@ -102,9 +102,11 @@ function LoginFormContent() {
     customer: {
       email: "ar@gmail.com",
       password: "123456",
+
     },
     seller: {
-      email: "hs@gmail.com",
+
+      email: "bk@gmail.com",
       password: "123456",
     },
   }
@@ -140,6 +142,14 @@ function LoginFormContent() {
         localStorage.clear()
         sessionStorage.clear()
 
+        const accessToken = data.data.accessToken;
+        const refreshToken = data.data.refreshToken;
+
+        // ✅ SET COOKIES (THIS MAKES MIDDLEWARE WORK)
+        document.cookie = `accessToken=${accessToken}; path=/; max-age=86400`;
+        if (refreshToken) {
+          document.cookie = `refreshToken=${refreshToken}; path=/; max-age=604800`;
+        }
         // Store new tokens in localStorage
         localStorage.setItem('accessToken', data.data.accessToken)
         if (data.data.refreshToken) {
@@ -203,17 +213,19 @@ function LoginFormContent() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-linear-to-r from-blue-400/5 to-cyan-400/5 rounded-full blur-3xl"></div>
       </div>
 
+
+
       <div className="relative z-10 max-w-md mx-auto">
         {/* Welcome Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-lg shadow-blue-500/30 mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-emerald-500 rounded-2xl shadow-lg shadow-blue-500/30 mb-6">
             <Globe className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-cyan-500 mb-3">
+          <h1 className="text-4xl font-bold text-primary mb-3">
             Welcome Back
           </h1>
           <p className="text-gray-600">
-            Sign in to continue 
+            Sign in to continue
           </p>
         </div>
 
@@ -341,7 +353,7 @@ function LoginFormContent() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-linear-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold rounded-xl py-7 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="w-full bg-primary cursor-pointer text-white font-semibold rounded-xl py-7 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-3">
@@ -370,7 +382,7 @@ function LoginFormContent() {
               <p className="text-gray-600">
                 New to our platform?{" "}
                 <Link
-                  href="/signup"
+                  href="/register"
                   className="font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-4 transition-colors"
                 >
                   Create an account

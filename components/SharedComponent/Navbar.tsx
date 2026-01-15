@@ -28,7 +28,7 @@ import {
 import { getMyProfile, logOutUser } from '@/app/utills/auth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { CartContext } from '@/app/context/CartContext';
 import { CartContextType } from '@/types/productType';
 import { useWishlist } from '@/app/context/WishlistContext';
@@ -44,12 +44,12 @@ type UserType = {
 
 // Categories data
 const categories = [
-  { id: '1', name: 'Electronics', slug: 'electronics', icon: '💻' },
-  { id: '2', name: 'Fashion', slug: 'fashion', icon: '👕' },
-  { id: '3', name: 'Home & Garden', slug: 'home-garden', icon: '🏠' },
-  { id: '4', name: 'Beauty', slug: 'beauty', icon: '💄' },
-  { id: '5', name: 'Sports', slug: 'sports', icon: '⚽' },
-  { id: '6', name: 'Books', slug: 'books', icon: '📚' },
+  { id: '1', name: 'Furniture', slug: 'furniture', icon: '💻' },
+  { id: '2', name: 'Clock', slug: 'clock', icon: '👕' },
+  { id: '3', name: 'Electronics', slug: 'electronics', icon: '🏠' },
+  { id: '4', name: 'cooking', slug: 'cooking', icon: '💄' },
+  { id: '5', name: 'Lighting', slug: 'lighting', icon: '⚽' },
+  { id: '6', name: 'Accessories', slug: 'accessories', icon: '📚' },
 ];
 
 export default function Navbar() {
@@ -112,7 +112,7 @@ export default function Navbar() {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
-    // http://localhost:3000/products?searchTerm=smart&limit=12
+   
 
     const queryParams = new URLSearchParams();
     queryParams.set('searchTerm', searchQuery);
@@ -149,9 +149,9 @@ export default function Navbar() {
   const getUserLinks = () => {
     const commonLinks = [
 
-       { href: '/dashboard/customer', label: 'My Dashboard', icon: Store },
+      { href: '/dashboard/customer', label: 'My Dashboard', icon: Store },
       { href: '/dashboard/customer/profile', label: 'My Profile', icon: UserCircle },
-      
+
       { href: '/wishlist', label: 'Wishlist', icon: Heart },
     ];
 
@@ -165,7 +165,7 @@ export default function Navbar() {
 
     if (user?.role === 'SELLER') {
       return [
-      
+
         { href: '/dashboard/seller/profile', label: 'My Profile', icon: UserCircle },
         { href: '/dashboard/seller', label: 'My Dashboard', icon: Store },
         { href: '/seller/products', label: 'My Products', icon: Package },
@@ -262,134 +262,73 @@ export default function Navbar() {
             </div>
 
             {/* Action Icons */}
-            <div className="flex items-center space-x-4">
-              {/* Mobile Search Button */}
-              <button
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="lg:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-primary"
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5" />
-              </button>
+            {/* Action Icons */}
+            <div className="flex items-center space-x-3">
 
-              {/* Shopping Cart */}
-              <Link href="/cart" className="relative p-2">
-                <ShoppingCart className="h-5 w-5" />
+              {/* Wishlist */}
+              <Link
+                href="/wishlist"
+                className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                aria-label="Wishlist"
+              >
+                <Heart className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                {!isLoading && wishlist.length > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 text-[10px] bg-primary text-white rounded-full flex items-center justify-center">
+                    {wishlist.length}
+                  </span>
+                )}
+              </Link>
+
+              {/* Cart */}
+              <Link
+                href="/cart"
+                className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                aria-label="Cart"
+              >
+                <ShoppingCart className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                 {totalQuantity > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 h-4 w-4 text-[10px] bg-primary text-white rounded-full flex items-center justify-center">
                     {totalQuantity}
                   </span>
                 )}
               </Link>
-              {/* <Link
-                href="/cart"
-                className="p-2 text-gray-700 dark:text-gray-300 hover:text-primary relative"
-                aria-label="Shopping Cart"
-              >
 
-                <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  3
-                </span>
-              </Link> */}
-
-              {/* User Authentication Section */}
+              {/* User Section */}
               {loading ? (
-                <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
               ) : user ? (
-                // User is logged in - Show profile dropdown
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center space-x-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <Avatar className="h-8 w-8 border-2 border-primary/20">
+                    <button className="flex items-center gap-1 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                      <Avatar className="h-8 w-8">
                         <AvatarImage src={user.profilePhoto} />
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {getUserInitials()}
-                        </AvatarFallback>
+                        <AvatarFallback>{getUserInitials()}</AvatarFallback>
                       </Avatar>
-                      <span className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {user.name.split(' ')[0]}
-                      </span>
                       <ChevronDown className="hidden md:block h-4 w-4 text-gray-400" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{user.name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                        {user.role && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
-                            {user.role}
-                          </span>
-                        )}
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-
-                    {getUserLinks().map((link) => (
-                      <DropdownMenuItem key={link.href} asChild>
-                        <Link href={link.href} className="flex justify-between w-full">
-                          <span>{link.label}</span>
-                          {link.label === "Wishlist" && (
-                            isLoading ? (
-                              <span className="ml-1 text-muted">…</span>
-                            ) : (
-                              <span className="ml-1 text-primary font-medium">
-                                ({wishlist.length})
-                              </span>
-                            )
-                          )}
-                        </Link>
-                      </DropdownMenuItem>
-                    ))}
-
-
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="text-red-600 cursor-pointer"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
+                  {/* keep your dropdown content same */}
                 </DropdownMenu>
               ) : (
-                // User is not logged in - Show login/register buttons
-                <div className="hidden md:flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                    className="border-primary text-primary hover:bg-primary/10"
-                  >
-                    <Link href="/login">
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Login
-                    </Link>
+                <div className="hidden md:flex gap-2">
+                  <Button variant="ghost" asChild>
+                    <Link href="/login">Login</Link>
                   </Button>
-                  <Button
-                    size="sm"
-                    asChild
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <Link href="/register">
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Register
-                    </Link>
+                  <Button asChild>
+                    <Link href="/register">Register</Link>
                   </Button>
                 </div>
               )}
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-primary"
-                aria-label="Menu"
+                className="md:hidden p-2"
               >
-                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {isMenuOpen ? <X /> : <Menu />}
               </button>
             </div>
+
           </div>
 
           {/* Mobile Search Bar */}

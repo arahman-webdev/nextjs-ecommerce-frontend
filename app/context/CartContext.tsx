@@ -1,4 +1,3 @@
-// app/context/CartContext.tsx
 "use client"
 
 import React, { createContext, useEffect, useState } from "react"
@@ -10,108 +9,68 @@ const STORAGE_KEY = "ecommerce-cart-items"
 
 const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const [isMounted, setIsMounted] = useState(false)
+  const [cartReady, setCartReady] = useState(false)
 
-  // Initialize on mount
+  // ✅ Load cart ONCE
   useEffect(() => {
-    console.log("🔄 CartProvider mounting...")
-    setIsMounted(true)
-    
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
-      console.log("📦 Loading from localStorage:", stored)
-      
       if (stored) {
         const parsed = JSON.parse(stored)
-        console.log("📦 Parsed cart items:", parsed)
-        
         if (Array.isArray(parsed)) {
           setCartItems(parsed)
         }
       }
-    } catch (error) {
-      console.error("❌ Failed to load cart:", error)
-    }
-    
-    return () => {
-      console.log("🔄 CartProvider unmounting...")
+    } catch (e) {
+      console.error("Failed to load cart", e)
+    } finally {
+      setCartReady(true)
     }
   }, [])
 
-  // Save to localStorage
+  // ✅ Save cart
   useEffect(() => {
-    if (!isMounted) return
-    
-    console.log("💾 Saving cart to localStorage:", cartItems)
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cartItems))
-    } catch (error) {
-      console.error("❌ Failed to save cart:", error)
-    }
-  }, [cartItems, isMounted])
+    if (!cartReady) return
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cartItems))
+  }, [cartItems, cartReady])
 
   const addToCart = (product: Omit<CartItem, "quantity"> | CartItem) => {
-    console.log("➕ Adding to cart:", product)
-    
     setCartItems(prev => {
-      // Convert to CartItem if needed
-      const cartProduct = "quantity" in product 
-        ? product 
-        : { ...product, quantity: 1 }
-      
-      const existingIndex = prev.findIndex(item => item.id === cartProduct.id)
-      
-      if (existingIndex >= 0) {
-        // Update existing item
+      const item = "quantity" in product ? product : { ...product, quantity: 1 }
+      const index = prev.findIndex(p => p.id === item.id)
+
+      if (index !== -1) {
         const updated = [...prev]
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + 1
-        }
-        console.log("📝 Updated existing item:", updated)
+        updated[index].quantity += 1
         return updated
       }
-      
-      // Add new item
-      const updated = [...prev, cartProduct]
-      console.log("🆕 Added new item:", updated)
-      return updated
+      return [...prev, item]
     })
   }
 
-  const removeFromCart = (id: string) => {
-    console.log("🗑️ Removing from cart:", id)
-    setCartItems(prev => prev.filter(item => item.id !== id))
-  }
+  const removeFromCart = (id: string) =>
+    setCartItems(prev => prev.filter(i => i.id !== id))
 
-  const updateQuantity = (id: string, delta: number) => {
-    console.log("🔢 Updating quantity:", id, delta)
+  const updateQuantity = (id: string, delta: number) =>
     setCartItems(prev =>
-      prev.map(item =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
+      prev.map(i =>
+        i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i
       )
     )
-  }
 
-  const clearCart = () => {
-    console.log("🧹 Clearing cart")
-    setCartItems([])
-  }
-
-  const contextValue: CartContextType = {
-    cartItems,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-  }
-
-  console.log("🎯 CartContext value:", contextValue)
+  const clearCart = () => setCartItems([])
 
   return (
-    <CartContext.Provider value={contextValue}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        
+      }}
+    >
       {children}
     </CartContext.Provider>
   )

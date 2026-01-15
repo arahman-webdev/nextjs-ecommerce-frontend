@@ -84,7 +84,7 @@ export function RegisterForm({
 
       console.log("Registration attempt with data:", data)
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      const API_URL = process.env.NEXT_PUBLIC_API_URL
 
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",

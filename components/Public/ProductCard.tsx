@@ -3,11 +3,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, ShoppingBag, Heart, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Star, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AddToCart } from '@/components/SharedComponent/AddToCart';
-import { useState } from 'react';
 import WishlistButton from '../SharedComponent/WishlistButton';
 
 interface ProductCardProps {
@@ -30,8 +28,10 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
   console.log("from product card ", product)
 
   return (
+    <>
+   
     <div className={cn(
-      "group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden",
+      "group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden",
       viewMode === 'list' && "flex",
       !isInStock && "opacity-75"
     )}>
@@ -57,7 +57,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
             </span>
           )}
           {product.isFeatured && (
-            <span className="bg-amber-500 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
+            <span className="bg-primary text-white px-2 py-1 rounded text-xs font-bold shadow-md">
               Featured
             </span>
           )}
@@ -69,9 +69,9 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         </div>
 
         {/* Quick Actions */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute top-3 right-3 flex flex-col gap-2 translate-x-3  opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow hover:shadow-md transition-shadow">
-            <Heart className="h-5 w-5 text-gray-600 hover:text-red-500" />
+            {/* <Heart className="h-5 w-5 text-gray-600 hover:text-red-500" /> */}
             <WishlistButton productId={product.id} />
           </button>
           <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow hover:shadow-md transition-shadow">
@@ -112,7 +112,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           </div>
 
           {/* Product Name */}
-          <Link href={`/products/${product.id}`}>
+          <Link href={`/products/${product.slug}`}>
             <h3 className="font-semibold text-gray-900 group-hover:text-primary transition-colors line-clamp-2 mb-2">
               {product.name}
             </h3>
@@ -175,5 +175,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         </div>
       </div>
     </div>
+   
+    </>
   );
 }

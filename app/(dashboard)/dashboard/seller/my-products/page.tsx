@@ -61,7 +61,7 @@ export default function MyProductPage() {
       }
 
       // Make API call
-      const res = await fetch('http://localhost:5000/api/product/my-products', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/my-products`, {
         method: "GET",
         headers: {
           'Content-Type': 'application/json',
