@@ -1,8 +1,8 @@
 "use client"
 import { WishlistContextType, WishlistItem } from "@/types/productType";
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
-const WishlistContext = createContext<WishlistContextType | null>(null)
+export const WishlistContext = createContext<WishlistContextType | null>(null)
 
 const STORAGE_KEY = "wishlist";
 
@@ -66,3 +66,12 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
   )
 
 }
+
+// Custom Hook
+export const useWishlist = () => {
+  const context = useContext(WishlistContext);
+  if (!context) {
+    throw new Error("useWishlist must be used within WishlistProvider");
+  }
+  return context;
+};

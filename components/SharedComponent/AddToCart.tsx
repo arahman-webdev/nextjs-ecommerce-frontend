@@ -29,26 +29,21 @@ export function AddToCart({
   const [addingToCart, setAddingToCart] = useState(false) // Local loading state
   const [justAdded, setJustAdded] = useState<string | null>(null) // Track recently added
 
-  console.log("🔘 AddToCart component rendered")
-  console.log("🔘 Cart context exists:", !!cartContext)
-  console.log("🔘 Product data:", product)
+
 
   // Handle add to cart
   const handleAddToCart = async () => {
-    console.log("🖱️ === ADD TO CART CLICKED ===")
+    
     
     if (!cartContext) {
-      console.error("❌ Cart context is null!")
+      
       return
     }
     
     if (!product) {
-      console.error("❌ No product to add!")
+      
       return
     }
-
-    console.log("📦 Product to add:", product)
-    console.log("📦 Cart before adding:", cartContext.cartItems)
 
     // Show loading state
     setAddingToCart(true)
@@ -63,12 +58,11 @@ export function AddToCart({
         productImages: product.productImages || []
       }
       
-      console.log("📦 Cart item to add:", cartItem)
+  
       
       // Call addToCart
       cartContext.addToCart(cartItem)
       
-      console.log("✅ addToCart called successfully")
       
       // Wait for 500ms to show spinner properly
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -77,8 +71,7 @@ export function AddToCart({
       setAddingToCart(false)
       setIsOpen(true)
       
-      // Check cart
-      console.log("📦 Cart after adding:", cartContext.cartItems)
+    
       
       // Reset justAdded after 1 second
       setTimeout(() => {
@@ -86,7 +79,7 @@ export function AddToCart({
       }, 1000)
       
     } catch (error) {
-      console.error("❌ Error adding to cart:", error)
+      
       setAddingToCart(false)
       setJustAdded(null)
     }
@@ -96,7 +89,7 @@ export function AddToCart({
   const handleQuantityChange = async (id: string, delta: number) => {
     if (!cartContext) return
     
-    console.log(`🔢 Changing quantity for ${id}: ${delta}`)
+  
     setIsUpdating(id)
     await new Promise(resolve => setTimeout(resolve, 300))
     cartContext.updateQuantity(id, delta)
@@ -107,7 +100,7 @@ export function AddToCart({
   const handleRemove = async (id: string) => {
     if (!cartContext) return
     
-    console.log(`🗑️ Removing item: ${id}`)
+   
     setIsUpdating(id)
     await new Promise(resolve => setTimeout(resolve, 300))
     cartContext.removeFromCart(id)
@@ -129,8 +122,7 @@ export function AddToCart({
     }).format(price)
   }
 
-  console.log("🛒 Current cart items:", cartContext?.cartItems || [])
-  console.log("⏱️ Adding to cart:", addingToCart)
+ 
 
   // Show loading if no cart context
   if (!cartContext) {
@@ -150,7 +142,7 @@ export function AddToCart({
         disabled={addingToCart || !product}
         size="sm"
         className={cn(
-          "text-white min-w-[120px] transition-all duration-300 cursor-pointer",
+          "text-white min-w-30 transition-all duration-300 cursor-pointer",
           addingToCart 
             ? "bg-primary/80 cursor-wait" 
             : "bg-primary hover:bg-primary/90"
@@ -197,12 +189,9 @@ export function AddToCart({
                   <div
                     key={item.id}
                     className={cn(
-                      "flex items-start gap-4 p-4 border rounded-lg bg-white transition-all duration-300",
-                     
-                    )}
-                  >
+                      "flex items-start gap-4 p-4 border rounded-lg bg-white transition-all duration-300",)}>
                     {/* Product Image */}
-                    <div className="relative w-20 h-20 flex-shrink-0">
+                    <div className="relative w-20 h-20 shrink-0">
                       <img
                         src={item.productImages?.[0]?.imageUrl || '/api/placeholder/80/80'}
                         alt={item.name}

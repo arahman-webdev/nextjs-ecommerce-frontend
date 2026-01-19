@@ -40,8 +40,6 @@ export async function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
 
-  console.log("from proxy accesstoken ", accessToken)
-
   // 3️⃣ Not logged in & trying to access protected route
   if (!accessToken && !refreshToken && !authRoutes.includes(pathname)) {
     return redirectToLogin(request);
@@ -58,7 +56,7 @@ export async function proxy(request: NextRequest) {
     try {
       user = jwtDecode<IUser>(accessToken);
     } catch (err) {
-      console.error("JWT decode error:", err);
+      
       // Invalid token → clear cookie
       const res = redirectToLogin(request);
       res.cookies.delete("accessToken");

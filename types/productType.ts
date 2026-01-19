@@ -13,14 +13,16 @@ export interface CartContextType {
   removeFromCart: (id: string) => void
   updateQuantity: (id: string, delta: number) => void
   clearCart: () => void
+  setCartFromDB:any
 }
 
 
 export interface WishlistItem {
   id: string
   name: string
+  slug: string
   price: string
-  productImages: {imageUrl: string} []
+  image: string
 }
 
 export type WishlistContextType = {

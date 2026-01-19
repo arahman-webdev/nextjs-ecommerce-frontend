@@ -1,4 +1,3 @@
-// components/navbar/Navbar.tsx
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -23,21 +22,28 @@ import {
   Store,
   Info,
   Phone,
-  Grid
+  Grid,
 } from 'lucide-react';
 import { getMyProfile, logOutUser } from '@/app/utills/auth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { CartContext } from '@/app/context/CartContext';
 import { CartContextType } from '@/types/productType';
-
+import { useWishlist } from '@/app/context/WishlistContext';
 
 type UserType = {
   id: string;
   name: string;
   email?: string;
-  role?: "ADMIN" | "SELLER" | "CUSTOMER";
+  role?: 'ADMIN' | 'SELLER' | 'CUSTOMER';
   profilePhoto?: string;
   bio?: string;
 };
@@ -53,7 +59,7 @@ const categories = [
 ];
 
 export default function Navbar() {
-
+  const { wishlist } = useWishlist();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -63,18 +69,9 @@ export default function Navbar() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
-
-  const pathName = usePathname();
-
-
-
-  const cartContext = useContext(CartContext) as CartContextType
-  const cartItems = cartContext?.cartItems ?? []
-
-  const totalQuantity = cartItems.reduce(
-    (sum, item) => sum + item.quantity,
-    0
-  )
+  const cartContext = useContext(CartContext) as CartContextType;
+  const cartItems = cartContext?.cartItems ?? [];
+  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   /* -------------------- Fetch User -------------------- */
   useEffect(() => {
@@ -89,12 +86,11 @@ export default function Navbar() {
         }
       } catch (error) {
         setUser(null);
-        console.error("Failed to fetch user profile:", error);
+        console.error('Failed to fetch user profile:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchUser();
   }, [pathname]);
 
@@ -111,8 +107,6 @@ export default function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-
-   
 
     const queryParams = new URLSearchParams();
     queryParams.set('searchTerm', searchQuery);
@@ -148,10 +142,8 @@ export default function Navbar() {
   // User dashboard links based on role
   const getUserLinks = () => {
     const commonLinks = [
-
       { href: '/dashboard/customer', label: 'My Dashboard', icon: Store },
       { href: '/dashboard/customer/profile', label: 'My Profile', icon: UserCircle },
-
       { href: '/wishlist', label: 'Wishlist', icon: Heart },
     ];
 
@@ -165,7 +157,6 @@ export default function Navbar() {
 
     if (user?.role === 'SELLER') {
       return [
-
         { href: '/dashboard/seller/profile', label: 'My Profile', icon: UserCircle },
         { href: '/dashboard/seller', label: 'My Dashboard', icon: Store },
         { href: '/seller/products', label: 'My Products', icon: Package },
@@ -180,7 +171,7 @@ export default function Navbar() {
     if (!user?.name) return 'U';
     return user.name
       .split(' ')
-      .map(word => word[0])
+      .map((word) => word[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -189,10 +180,13 @@ export default function Navbar() {
   return (
     <>
       {/* Main Navbar */}
-      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled
-        ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b'
-        : 'bg-white dark:bg-gray-900'
-        }`}>
+      <header
+        className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+          isScrolled
+            ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b'
+            : 'bg-white dark:bg-gray-900'
+        }`}
+      >
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
@@ -213,14 +207,13 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium ${pathname === link.href ? 'text-primary' : ''
-                    }`}
+                  className={`flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium ${
+                    pathname === link.href ? 'text-primary' : ''
+                  }`}
                 >
-
                   <span>{link.label}</span>
                 </Link>
               ))}
-
             </nav>
 
             {/* Search Bar (Desktop) */}
@@ -262,73 +255,139 @@ export default function Navbar() {
             </div>
 
             {/* Action Icons */}
-            {/* Action Icons */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
+              {/* Mobile Search Button */}
+              <button
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="lg:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-primary"
+                aria-label="Search"
+              >
+                <Search className="h-5 w-5" />
+              </button>
 
               {/* Wishlist */}
               <Link
                 href="/wishlist"
-                className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-primary"
                 aria-label="Wishlist"
               >
-                <Heart className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-                {/* {!isLoading && wishlist.length > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 text-[10px] bg-primary text-white rounded-full flex items-center justify-center">
+                <Heart className="h-5 w-5" />
+                {wishlist.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {wishlist.length}
                   </span>
-                )} */}
+                )}
               </Link>
 
-              {/* Cart */}
+              {/* Shopping Cart */}
               <Link
                 href="/cart"
-                className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                aria-label="Cart"
+                className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-primary"
+                aria-label="Shopping Cart"
               >
-                <ShoppingCart className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                <ShoppingCart className="h-5 w-5" />
                 {totalQuantity > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 text-[10px] bg-primary text-white rounded-full flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {totalQuantity}
                   </span>
                 )}
               </Link>
 
-              {/* User Section */}
+              {/* User Authentication Section */}
               {loading ? (
-                <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
               ) : user ? (
+                // User is logged in - Show profile dropdown
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                      <Avatar className="h-8 w-8">
+                    <button className="flex items-center space-x-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                      <Avatar className="h-8 w-8 border-2 border-primary/20">
                         <AvatarImage src={user.profilePhoto} />
-                        <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {getUserInitials()}
+                        </AvatarFallback>
                       </Avatar>
+                      <span className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {user.name.split(' ')[0]}
+                      </span>
                       <ChevronDown className="hidden md:block h-4 w-4 text-gray-400" />
                     </button>
                   </DropdownMenuTrigger>
-                  {/* keep your dropdown content same */}
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">{user.name}</p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
+                        {user.role && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+                            {user.role}
+                          </span>
+                        )}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {getUserLinks().map((link) => (
+                      <DropdownMenuItem key={link.href} asChild>
+                        <Link href={link.href} className="flex justify-between w-full">
+                          <span>{link.label}</span>
+                          {link.label === 'Wishlist' && (
+                            loading ? (
+                              <span className="ml-1 text-muted"></span>
+                            ) : (
+                              <span className="ml-1 text-primary font-medium">
+                                ({wishlist.length})
+                              </span>
+                            )
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="text-red-600 cursor-pointer"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <div className="hidden md:flex gap-2">
-                  <Button variant="ghost" asChild>
-                    <Link href="/login">Login</Link>
+                // User is not logged in - Show login/register buttons
+                <div className="hidden md:flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="border-primary text-primary hover:bg-primary/10"
+                  >
+                    <Link href="/login">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Login
+                    </Link>
                   </Button>
-                  <Button asChild>
-                    <Link href="/register">Register</Link>
+                  <Button
+                    size="sm"
+                    asChild
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <Link href="/register">
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Register
+                    </Link>
                   </Button>
                 </div>
               )}
 
-              {/* Mobile Menu */}
+              {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2"
+                className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-primary"
+                aria-label="Menu"
               >
-                {isMenuOpen ? <X /> : <Menu />}
+                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
-
           </div>
 
           {/* Mobile Search Bar */}
@@ -377,10 +436,10 @@ export default function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${pathname === link.href ? 'bg-primary/10 text-primary' : ''
-                      }`}
+                    className={`flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${
+                      pathname === link.href ? 'bg-primary/10 text-primary' : ''
+                    }`}
                   >
-
                     <span>{link.label}</span>
                   </Link>
                 ))}
@@ -424,7 +483,6 @@ export default function Navbar() {
                           <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
                       </div>
-
                       <div className="space-y-1">
                         {getUserLinks().map((link) => (
                           <Link
@@ -435,9 +493,13 @@ export default function Navbar() {
                           >
                             <link.icon className="h-5 w-5" />
                             <span>{link.label}</span>
+                            {link.label === 'Wishlist' && (
+                              <span className="ml-auto text-primary font-medium">
+                                ({wishlist.length})
+                              </span>
+                            )}
                           </Link>
                         ))}
-
                         <button
                           onClick={() => {
                             handleLogout();
@@ -495,11 +557,9 @@ export default function Navbar() {
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
-        
         .dark select {
           background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
         }
-        
         select:focus {
           outline: 2px solid transparent;
           outline-offset: 2px;

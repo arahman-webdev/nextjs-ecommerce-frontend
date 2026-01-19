@@ -9,8 +9,7 @@ export const getMyProfile = async () => {
                     sessionStorage.getItem('token') ||
                     getCookie('accessToken');
         }
-        
-        console.log('Fetching profile with token:', token ? 'Token found' : 'No token');
+       
 
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
@@ -27,7 +26,7 @@ export const getMyProfile = async () => {
             credentials: "include" // Still include cookies as backup
         });
 
-        console.log('Profile response status:', res.status);
+     
 
         if (!res.ok) {
             if (res.status === 401) {
@@ -40,7 +39,7 @@ export const getMyProfile = async () => {
         }
 
         const data = await res.json();
-        console.log('Profile data:', data);
+        
 
         return {
             isAuthenticated: true,
@@ -49,7 +48,7 @@ export const getMyProfile = async () => {
         };
 
     } catch (err: any) {
-        console.log('Profile fetch error:', err);
+       
         return {
             isAuthenticated: false,
             data: null,
@@ -69,7 +68,7 @@ const getCookie = (name: string): string | null => {
 
 export const logOutUser = async () => {
     try {
-        console.log('Logging out...');
+      
         
         // 1. Call backend logout endpoint
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, { // Fixed URL
@@ -80,7 +79,7 @@ export const logOutUser = async () => {
             credentials: "include" // Important for cookies
         });
 
-        console.log('Logout response status:', res.status);
+        
 
         // 2. Clear frontend storage regardless of backend response
         if (typeof window !== 'undefined') {
@@ -99,7 +98,7 @@ export const logOutUser = async () => {
             document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             document.cookie = 'userRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             
-            console.log('Frontend storage cleared');
+            
         }
 
         // 3. Check backend response
@@ -108,7 +107,7 @@ export const logOutUser = async () => {
             // Don't throw error here, we've already cleared frontend
         } else {
             const data = await res.json();
-            console.log('Backend logout response:', data);
+            
         }
 
         return { 
@@ -117,7 +116,7 @@ export const logOutUser = async () => {
         };
 
     } catch (err: any) {
-        console.error('Logout error:', err);
+
         
         // Still clear frontend storage even if there's an error
         if (typeof window !== 'undefined') {

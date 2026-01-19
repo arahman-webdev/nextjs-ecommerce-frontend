@@ -17,7 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useContext } from "react"
 import {
   LogIn,
   Eye,
@@ -29,6 +29,10 @@ import {
   User,
   Shield,
 } from "lucide-react"
+import { mergeLocalCartToDB } from "@/app/utills/mergeLocalCartToDB";
+import { CartContext } from "@/app/context/CartContext";
+import { CartContextType } from "@/types/productType";
+
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -41,7 +45,7 @@ function LoginFormContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null)
-
+  const cartContext = useContext(CartContext) as CartContextType | null;
   useEffect(() => {
     // Get redirect from URL on client side
     if (typeof window !== 'undefined') {
@@ -138,9 +142,7 @@ function LoginFormContent() {
       console.log('Login response:', data)
 
       if (data.status && data.data?.accessToken) {
-        // Clear any old auth data first
-        localStorage.clear()
-        sessionStorage.clear()
+
 
         const accessToken = data.data.accessToken;
         const refreshToken = data.data.refreshToken;
@@ -159,33 +161,42 @@ function LoginFormContent() {
         localStorage.setItem('user', JSON.stringify(data.data.user || {}))
         localStorage.setItem('loginTime', Date.now().toString())
 
+      
+
+      /* ---------------- MERGE CART ---------------- */
+    await mergeLocalCartToDB();
+
+
+ 
+
+
         toast.success(data.message || "Welcome back! Login successful!")
 
         const userRole = data.data.user?.role || 'CUSTOMER'
 
         // Determine where to redirect
-        let targetUrl = '/dashboard'
-        if (redirectUrl) {
-          targetUrl = redirectUrl
-        } else {
-          // No redirect param, use role-based default
-          switch (userRole.toUpperCase()) {
-            case 'ADMIN':
-              targetUrl = '/dashboard/admin'
-              break
-            case 'SELLER':
-              targetUrl = '/dashboard/seller'
-              break
-            case 'CUSTOMER':
-              targetUrl = '/dashboard/customer'
-              break
-          }
-        }
+        // let targetUrl = '/dashboard'
+        // if (redirectUrl) {
+        //   targetUrl = redirectUrl
+        // } else {
+        //   // No redirect param, use role-based default
+        //   switch (userRole.toUpperCase()) {
+        //     case 'ADMIN':
+        //       targetUrl = '/dashboard/admin'
+        //       break
+        //     case 'SELLER':
+        //       targetUrl = '/dashboard/seller'
+        //       break
+        //     case 'CUSTOMER':
+        //       targetUrl = '/dashboard/customer'
+        //       break
+        //   }
+        // }
 
-        console.log('Login successful, redirecting to:', targetUrl)
+
 
         // Use window.location for a clean redirect
-        window.location.href = targetUrl
+        // window.location.href = targetUrl
 
       } else {
         const errorMessage = data.message || "Login failed. Please check your credentials."

@@ -176,7 +176,7 @@ export default function CategorySection() {
   }
 
 
-  console.log("fetch category", categories)
+
 
   return (
     <div className="container mx-auto px-4 py-8">
