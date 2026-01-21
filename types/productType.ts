@@ -8,13 +8,14 @@ export interface CartItem {
 }
 
 export interface CartContextType {
-  cartItems: CartItem[]
-  addToCart: (product: Omit<CartItem, "quantity">) => void
-  removeFromCart: (id: string) => void
-  updateQuantity: (id: string, delta: number) => void
-  clearCart: () => void
-  setCartFromDB:any
+  cartItems: CartItem[];
+  addToCart: (product: CartItem) => Promise<void>; // ✅ quantity included
+  removeFromCart: (id: string) => Promise<void>;
+  updateQuantity: (id: string, delta: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  setCartFromDB: React.Dispatch<React.SetStateAction<CartItem[]>>;
 }
+
 
 
 export interface WishlistItem {

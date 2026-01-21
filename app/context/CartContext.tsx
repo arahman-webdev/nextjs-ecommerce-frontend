@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import React, { createContext, useEffect, useState } from "react";
@@ -17,7 +19,7 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoggedIn(!!token);
   }, []);
 
-  /* ---------------- Guest cart only ---------------- */
+  /* ---------------- Guest cart load ---------------- */
   useEffect(() => {
     if (isLoggedIn) return;
 
@@ -32,99 +34,185 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   /* ---------------- Save guest cart ---------------- */
   useEffect(() => {
-    if (isLoggedIn) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cartItems));
+    if (!isLoggedIn) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cartItems));
+    }
   }, [cartItems, isLoggedIn]);
 
   /* ---------------- Load cart from DB ---------------- */
-  useEffect(() => {
-    if (!isLoggedIn) return;
-
+  const fetchDBCart = async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
 
-    const fetchCart = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      if (data?.data?.items) {
-        setCartItems(
-          data.data.items.map((item: any) => ({
-            id: item.product.id,
-            name: item.product.name,
-            price: item.product.price,
-            quantity: item.quantity,
-            productImages: item.product.productImages || [],
-          }))
-        );
-      }
-    };
+    const data = await res.json();
 
-    fetchCart();
+    if (data?.data?.items) {
+      setCartItems(
+        data.data.items.map((item: any) => ({
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          productImages: item.product.productImages || [],
+        }))
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchDBCart();
+      localStorage.removeItem(STORAGE_KEY); // clear guest cart
+    }
   }, [isLoggedIn]);
 
-  /* ---------------- Actions ---------------- */
-  const addToCart = async (product: Omit<CartItem, "quantity">) => {
+  /* ---------------- Add to cart ---------------- */
+ const addToCart = async (product: CartItem) => {
+  if (!isLoggedIn) {
+    setCartItems(prev => {
+      const exists = prev.find(p => p.id === product.id);
+
+      if (exists) {
+        return prev.map(p =>
+          p.id === product.id
+            ? { ...p, quantity: p.quantity + product.quantity }
+            : p
+        );
+      }
+
+      return [...prev, product]; // quantity already included
+    });
+
+    return;
+  }
+
+
+  // 🟢 LOGGED-IN USER → DB
+  const token = localStorage.getItem("accessToken");
+
+  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/merge`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      items: [{ productId: product.id, quantity: product.quantity }],
+    }),
+  });
+
+  // 🔄 refresh DB cart
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+
+  setCartItems(
+    data.data.items.map((item: any) => ({
+      id: item.product.id,
+      name: item.product.name,
+      price: item.product.price,
+      quantity: item.quantity,
+      productImages: item.product.productImages || [],
+    }))
+  );
+};
+
+
+  /* ---------------- Update quantity ---------------- */
+  const updateQuantity = async (id: string, delta: number) => {
     if (!isLoggedIn) {
       // guest
-      setCartItems(prev => {
-        const exists = prev.find(p => p.id === product.id);
-        if (exists) {
-          return prev.map(p =>
-            p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
-          );
-        }
-        return [...prev, { ...product, quantity: 1 }];
-      });
+      setCartItems(prev =>
+        prev.map(i =>
+          i.id === id
+            ? { ...i, quantity: Math.max(1, i.quantity + delta) }
+            : i
+        )
+      );
       return;
     }
 
-    // logged in → DB
     const token = localStorage.getItem("accessToken");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/merge`, {
-      method: "POST",
+    const item = cartItems.find(i => i.id === id);
+    if (!item) return;
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/quantity`, {
+      method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        items: [{ productId: product.id, quantity: 1 }],
+        productId: id,
+        quantity: item.quantity + delta,
       }),
     });
 
-    // refresh DB cart
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-
-    setCartItems(
-      data.data.items.map((item: any) => ({
-        id: item.product.id,
-        name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-        productImages: item.product.productImages || [],
-      }))
-    );
+    await fetchDBCart();
   };
+
+  /* ---------------- Remove from cart ---------------- */
+  const removeFromCart = async (id: string) => {
+    if (!isLoggedIn) {
+      setCartItems(prev => prev.filter(i => i.id !== id));
+      return;
+    }
+
+    const token = localStorage.getItem("accessToken");
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    await fetchDBCart();
+  };
+
+
+  const clearCart = async (productIds?: string[]) => {
+  if (!isLoggedIn) {
+    // 🟡 guest
+    setCartItems([]);
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+
+  // 🟢 logged in → DB
+  const token = localStorage.getItem("accessToken");
+
+  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/clear`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    
+  });
+  
+  await fetchDBCart();
+  
+
+  setCartItems([]);
+};
 
   return (
     <CartContext.Provider
       value={{
         cartItems,
         addToCart,
-        removeFromCart: id =>
-          setCartItems(prev => prev.filter(i => i.id !== id)),
-        updateQuantity: (id, delta) =>
-          setCartItems(prev =>
-            prev.map(i =>
-              i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i
-            )
-          ),
-        clearCart: () => setCartItems([]),
+        updateQuantity,
+        removeFromCart,
+        clearCart,
         setCartFromDB: setCartItems,
       }}
     >
@@ -134,3 +222,4 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default CartProvider;
+

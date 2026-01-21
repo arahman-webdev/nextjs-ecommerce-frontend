@@ -40,9 +40,9 @@ export default function RootLayout({
           <WishlistProvider>
             <Navbar />
             {children}
-             <Toaster position="top-center" richColors />
+            <Toaster position="top-center" richColors />
             <Footer />
-        </WishlistProvider>
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>

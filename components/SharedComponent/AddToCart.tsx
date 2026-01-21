@@ -16,12 +16,16 @@ interface AddToCartProps {
     price: number
     productImages: { imageUrl: string }[]
   };
+  quantity?:number
+  className?: string
   onclick?: () => Promise<void> | void
 }
 
 export function AddToCart({ 
   product, 
-  onclick
+  quantity,
+  onclick,
+  className
 }: AddToCartProps) {
   const cartContext = useContext(CartContext)
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
@@ -32,58 +36,31 @@ export function AddToCart({
 
 
   // Handle add to cart
-  const handleAddToCart = async () => {
-    
-    
-    if (!cartContext) {
-      
-      return
-    }
-    
-    if (!product) {
-      
-      return
-    }
+const handleAddToCart = async () => {
+  if (!cartContext || !product) return;
 
-    // Show loading state
-    setAddingToCart(true)
-   
+  setAddingToCart(true);
 
-    try {
-      // Create the cart item
-      const cartItem = {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        productImages: product.productImages || []
-      }
-      
-  
-      
-      // Call addToCart
-      cartContext.addToCart(cartItem)
-      
-      
-      // Wait for 500ms to show spinner properly
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Stop loading and open sidebar
-      setAddingToCart(false)
-      setIsOpen(true)
-      
-    
-      
-      // Reset justAdded after 1 second
-      setTimeout(() => {
-        setJustAdded(null)
-      }, 1000)
-      
-    } catch (error) {
-      
-      setAddingToCart(false)
-      setJustAdded(null)
-    }
+  try {
+    await cartContext.addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      productImages: product.productImages || [],
+      quantity: quantity ?? 1 as number, // ✅ ONLY source of truth
+    });
+
+    // Optional UX delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    setIsOpen(true);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setAddingToCart(false);
   }
+};
+
 
   // Handle quantity change
   const handleQuantityChange = async (id: string, delta: number) => {
@@ -141,17 +118,19 @@ export function AddToCart({
         onClick={handleAddToCart}
         disabled={addingToCart || !product}
         size="sm"
-        className={cn(
-          "text-white min-w-30 transition-all duration-300 cursor-pointer",
-          addingToCart 
-            ? "bg-primary/80 cursor-wait" 
-            : "bg-primary hover:bg-primary/90"
-        )}
+   className={cn(
+    "text-white min-w-30 transition-all duration-300 cursor-pointer",
+    addingToCart
+      ? "bg-primary/80 cursor-wait"
+      : "bg-primary hover:bg-primary/90",
+    className as string
+  )}
       >
         {addingToCart ? (
           <>
             <Spinner className="h-4 w-4 mr-2 animate-spin" />
             Adding...
+            
           </>
         ) : (
           <>

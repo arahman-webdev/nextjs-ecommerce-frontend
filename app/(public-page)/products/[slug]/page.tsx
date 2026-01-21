@@ -404,7 +404,7 @@ export default function ProductDetailPage() {
   return (
     <div className="bg-gray-50">
       {/* Container with your provided max-width */}
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <div className="container  mx-auto px-4 sm:px-6 py-10">
         {/* Breadcrumb */}
         <div className="text-sm text-gray-500 mb-6">
           <Link href="/" className="hover:text-primary transition-colors">Home</Link> /{' '}
@@ -565,7 +565,7 @@ export default function ProductDetailPage() {
             {/* Quantity & Add to Cart */}
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
-                <div className="flex items-center border rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between border overflow-hidden w-full flex-2">
                   <button
                     onClick={() => handleQuantityChange(-1)}
                     className="p-3 sm:p-4 hover:bg-gray-50 transition-colors disabled:opacity-50"
@@ -573,7 +573,7 @@ export default function ProductDetailPage() {
                   >
                     <Minus size={20} />
                   </button>
-                  <span className="px-4 sm:px-6 text-lg sm:text-xl font-semibold min-w-[40px] sm:min-w-[60px] text-center">{quantity}</span>
+                  <div className="px-4 sm:px-6 text-lg sm:text-xl font-semibold  text-center">{quantity}</div>
                   <button
                     onClick={() => handleQuantityChange(1)}
                     className="p-3 sm:p-4 hover:bg-gray-50 transition-colors disabled:opacity-50"
@@ -583,7 +583,7 @@ export default function ProductDetailPage() {
                   </button>
                 </div>
 
-                <div className="flex-1 w-full sm:w-auto">
+                <div className=" w-full sm:w-auto flex-2">
                   <AddToCart
                     product={{
                       id: product.id,
@@ -591,6 +591,8 @@ export default function ProductDetailPage() {
                       price: product.price,
                       productImages: product.productImages,
                     }}
+                    quantity={quantity} 
+                    className="rounded-none bg-primary/80 w-full p-6"
                   />
                 </div>
               </div>
