@@ -16,7 +16,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect, Suspense, useContext } from "react"
 import {
   LogIn,
@@ -42,53 +42,53 @@ const formSchema = z.object({
 // Create an inner component that uses useSearchParams
 function LoginFormContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null)
   const cartContext = useContext(CartContext) as CartContextType | null;
+  
   useEffect(() => {
     // Get redirect from URL on client side
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const redirectParam = params.get('redirect')
+    const redirectParam = searchParams.get('redirect')
 
-      if (redirectParam) {
-        try {
-          const decoded = decodeURIComponent(redirectParam)
-          setRedirectUrl(decoded)
-          console.log('Redirect URL set to:', decoded)
-        } catch (error) {
-          console.error('Failed to decode redirect URL:', error)
-          setRedirectUrl(null)
-        }
-      }
-
-      // Check if already logged in
-      const token = localStorage.getItem('accessToken')
-      const userRole = localStorage.getItem('userRole')
-
-      if (token && userRole) {
-        console.log('Already logged in, redirecting...')
-        let targetUrl = '/dashboard'
-        if (redirectParam) {
-          try {
-            targetUrl = decodeURIComponent(redirectParam)
-          } catch {
-            // Fallback based on role
-            if (userRole === 'ADMIN') targetUrl = '/dashboard/admin'
-            else if (userRole === 'SELLER') targetUrl = '/dashboard/seller'
-            else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/customer/profile'
-          }
-        } else {
-          if (userRole === 'ADMIN') targetUrl = '/dashboard/admin'
-          else if (userRole === 'SELLER') targetUrl = '/dashboard/seller'
-          else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/customer'
-        }
-
-        router.replace(targetUrl)
+    if (redirectParam) {
+      try {
+        const decoded = decodeURIComponent(redirectParam)
+        setRedirectUrl(decoded)
+        console.log('Redirect URL set to:', decoded)
+      } catch (error) {
+        console.error('Failed to decode redirect URL:', error)
+        setRedirectUrl(null)
       }
     }
-  }, [router])
+
+    // Check if already logged in
+    const token = localStorage.getItem('accessToken')
+    const userRole = localStorage.getItem('userRole')
+
+    if (token && userRole) {
+      console.log('Already logged in, redirecting...')
+      let targetUrl = '/dashboard'
+      
+      if (redirectParam) {
+        try {
+          targetUrl = decodeURIComponent(redirectParam)
+        } catch {
+          // Fallback based on role
+          if (userRole === 'ADMIN') targetUrl = '/dashboard/admin'
+          else if (userRole === 'SELLER') targetUrl = '/dashboard/seller'
+          else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/customer/profile'
+        }
+      } else {
+        if (userRole === 'ADMIN') targetUrl = '/dashboard/admin'
+        else if (userRole === 'SELLER') targetUrl = '/dashboard/seller'
+        else if (userRole === 'CUSTOMER') targetUrl = '/dashboard/customer'
+      }
+
+      router.replace(targetUrl)
+    }
+  }, [searchParams, router])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -106,10 +106,8 @@ function LoginFormContent() {
     customer: {
       email: "ar@gmail.com",
       password: "123456",
-
     },
     seller: {
-
       email: "bk@gmail.com",
       password: "123456",
     },
@@ -119,7 +117,6 @@ function LoginFormContent() {
     form.setValue("email", demoCredentials[role].email)
     form.setValue("password", demoCredentials[role].password)
   }
-
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -142,8 +139,6 @@ function LoginFormContent() {
       console.log('Login response:', data)
 
       if (data.status && data.data?.accessToken) {
-
-
         const accessToken = data.data.accessToken;
         const refreshToken = data.data.refreshToken;
 
@@ -152,6 +147,7 @@ function LoginFormContent() {
         if (refreshToken) {
           document.cookie = `refreshToken=${refreshToken}; path=/; max-age=604800`;
         }
+        
         // Store new tokens in localStorage
         localStorage.setItem('accessToken', data.data.accessToken)
         if (data.data.refreshToken) {
@@ -161,42 +157,52 @@ function LoginFormContent() {
         localStorage.setItem('user', JSON.stringify(data.data.user || {}))
         localStorage.setItem('loginTime', Date.now().toString())
 
-      
-
-      /* ---------------- MERGE CART ---------------- */
-    await mergeLocalCartToDB();
-
-
- 
-
+        // Merge cart from local storage
+        await mergeLocalCartToDB();
 
         toast.success(data.message || "Welcome back! Login successful!")
 
         const userRole = data.data.user?.role || 'CUSTOMER'
 
         // Determine where to redirect
-        // let targetUrl = '/dashboard'
-        // if (redirectUrl) {
-        //   targetUrl = redirectUrl
-        // } else {
-        //   // No redirect param, use role-based default
+        // let targetUrl = '/dashboard';
+        
+        // Check for redirect URL from query params directly (not from state)
+        // const redirectParam = searchParams.get('redirect');
+        // if (redirectParam) {
+        //   try {
+        //     const decoded = decodeURIComponent(redirectParam);
+        //     targetUrl = decoded;
+        //     console.log('Using redirect from query param:', decoded);
+        //   } catch (error) {
+        //     console.error('Failed to decode redirect URL:', error);
+        //     // Fallback to role-based redirect
+        //   }
+        // }
+        
+        // If no redirect param in URL, use role-based default
+        // if (!redirectParam) {
         //   switch (userRole.toUpperCase()) {
         //     case 'ADMIN':
-        //       targetUrl = '/dashboard/admin'
-        //       break
+        //       targetUrl = '/dashboard/admin';
+        //       break;
         //     case 'SELLER':
-        //       targetUrl = '/dashboard/seller'
-        //       break
+        //       targetUrl = '/dashboard/seller';
+        //       break;
         //     case 'CUSTOMER':
-        //       targetUrl = '/dashboard/customer'
-        //       break
+        //       targetUrl = '/dashboard/customer';
+        //       break;
         //   }
         // }
 
-
-
-        // Use window.location for a clean redirect
-        // window.location.href = targetUrl
+       
+        
+        // Use router.push for a smooth client-side navigation
+        // router.push(targetUrl);
+        // // Optionally add a small delay to ensure toast is visible
+        // setTimeout(() => {
+        //   router.push(targetUrl);
+        // }, 100);
 
       } else {
         const errorMessage = data.message || "Login failed. Please check your credentials."
@@ -223,8 +229,6 @@ function LoginFormContent() {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-linear-to-r from-cyan-500/10 to-purple-500/10 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-linear-to-r from-blue-400/5 to-cyan-400/5 rounded-full blur-3xl"></div>
       </div>
-
-
 
       <div className="relative z-10 max-w-md mx-auto">
         {/* Welcome Header */}
@@ -357,8 +361,6 @@ function LoginFormContent() {
                     Customer
                   </Button>
                 </div>
-
-
 
                 {/* Login Button */}
                 <Button

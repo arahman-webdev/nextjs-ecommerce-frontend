@@ -2,62 +2,84 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 import { IUser } from "./types/user";
 
-// ---------------------------
-// Role-based routes
+/* ---------------------------
+   Role-based allowed routes
+---------------------------- */
 const roleBasedRoutes: Record<string, string[]> = {
   ADMIN: ["/dashboard/admin", "/admin"],
   SELLER: ["/dashboard/seller", "/seller"],
-  CUSTOMER: ["/dashboard/customer", "/customer"]
+  CUSTOMER: [
+    "/dashboard/customer",
+    "/customer",
+    "/checkout", // ✅ checkout allowed ONLY for CUSTOMER
+  ],
 };
 
-// Public routes
+/* ---------------------------
+   Public routes
+---------------------------- */
 const authRoutes = ["/login", "/signup", "/forgot-password"];
 
-// Utility: redirect to login with redirect param
+/* ---------------------------
+   Payment public routes
+---------------------------- */
+const paymentPublicRoutes = [
+  "/checkout/success",
+  "/checkout/cancel",
+  "/payment/callback",
+];
+
+/* ---------------------------
+   Redirect helper
+---------------------------- */
 function redirectToLogin(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  return NextResponse.redirect(new URL(`/login?redirect=${pathname}`, request.url));
+  const loginUrl = new URL("/login", request.url);
+  loginUrl.searchParams.set(
+    "redirect",
+    request.nextUrl.pathname + request.nextUrl.search
+  );
+  return NextResponse.redirect(loginUrl);
 }
 
-
-
-
-// Middleware
-export async function proxy(request: NextRequest) {
+/* ---------------------------
+   Middleware
+---------------------------- */
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1️⃣ Skip static files & API routes
-  if (pathname.startsWith("/_next") || pathname.startsWith("/api") || pathname.includes(".")) {
+  /* 1️⃣ Skip static & API */
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.includes(".")
+  ) {
     return NextResponse.next();
   }
 
-
-
-
-
-
-  // 2️⃣ Read tokens from cookies
+  /* 2️⃣ Read access token */
   const accessToken = request.cookies.get("accessToken")?.value;
-  const refreshToken = request.cookies.get("refreshToken")?.value;
 
-  // 3️⃣ Not logged in & trying to access protected route
-  if (!accessToken && !refreshToken && !authRoutes.includes(pathname)) {
+  /* 3️⃣ Allow public payment routes */
+  if (paymentPublicRoutes.some((r) => pathname.startsWith(r))) {
+    return NextResponse.next();
+  }
+
+  /* 4️⃣ Not logged in → protected route */
+  if (!accessToken && !authRoutes.includes(pathname)) {
     return redirectToLogin(request);
   }
 
-  // 4️⃣ Already logged in & accessing auth route
+  /* 5️⃣ Logged in → auth pages */
   if (accessToken && authRoutes.includes(pathname)) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // 5️⃣ Decode token
+  /* 6️⃣ Decode token */
   let user: IUser | null = null;
   if (accessToken) {
     try {
       user = jwtDecode<IUser>(accessToken);
-    } catch (err) {
-      
-      // Invalid token → clear cookie
+    } catch {
       const res = redirectToLogin(request);
       res.cookies.delete("accessToken");
       res.cookies.delete("refreshToken");
@@ -65,12 +87,16 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // 6️⃣ Role-based route check
+  /* 7️⃣ Role-based access control */
   if (user) {
     const allowedRoutes = roleBasedRoutes[user.userRole] || [];
-    const isAllowed = allowedRoutes.some((r) => pathname.startsWith(r));
 
-    if (!isAllowed && !authRoutes.includes(pathname)) {
+    const isAllowed =
+      pathname === "/" ||
+      pathname === "/dashboard" ||
+      allowedRoutes.some((route) => pathname.startsWith(route));
+
+    if (!isAllowed) {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
   }
@@ -78,15 +104,18 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Middleware matcher
+/* ---------------------------
+   Matcher
+---------------------------- */
 export const config = {
   matcher: [
+    "/checkout/:path*",
     "/dashboard/:path*",
     "/admin/:path*",
     "/seller/:path*",
     "/customer/:path*",
     "/login",
     "/signup",
-    "/forgot-password"
+    "/forgot-password",
   ],
 };
