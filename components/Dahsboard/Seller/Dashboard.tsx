@@ -25,6 +25,7 @@ import {
   ShoppingBag
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import PageLoading from "@/components/SharedComponent/loadings/PageLoading";
 
 // Define interfaces based on your actual API data
 interface Order {
@@ -590,15 +591,7 @@ export default function SellerDashboard() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div 
-            className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" 
-            style={{ borderColor: primaryColor }}
-          ></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
+     <PageLoading message='dashboard' />
     );
   }
 

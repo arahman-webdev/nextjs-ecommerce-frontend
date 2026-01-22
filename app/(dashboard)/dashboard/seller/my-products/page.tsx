@@ -3,6 +3,7 @@
 
 
 import MyProductListing from "@/components/Dahsboard/Seller/MyPorducts";
+import PageLoading from "@/components/SharedComponent/loadings/PageLoading";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -118,13 +119,7 @@ export default function MyProductPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" 
-               style={{ borderColor: '#83B734' }}></div>
-          <p className="mt-4 text-gray-600">Loading your products...</p>
-        </div>
-      </div>
+     <PageLoading message='your products' />
     );
   }
 

@@ -3,6 +3,7 @@
 
 import CusotmerOrders from "@/components/Dahsboard/Customer/MyOrders";
 import SellerOrders from "@/components/Dahsboard/Seller/MyOrders";
+import PageLoading from "@/components/SharedComponent/loadings/PageLoading";
 import { Order } from "@/types/order";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from 'react';
@@ -142,13 +143,14 @@ export default function SellerOrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" 
-               style={{ borderColor: '#83B734' }}></div>
-          <p className="mt-4 text-gray-600">Loading orders...</p>
-        </div>
-      </div>
+      // <div className="min-h-screen flex items-center justify-center">
+      //   <div className="text-center">
+      //     <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" 
+      //          style={{ borderColor: '#83B734' }}></div>
+      //     <p className="mt-4 text-gray-600">Loading orders...</p>
+      //   </div>
+      // </div>
+      <PageLoading message={"orders....."} />
     );
   }
 

@@ -20,6 +20,7 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip,
     Legend, ResponsiveContainer, AreaChart, Area
 } from 'recharts';
+import PageLoading from '@/components/SharedComponent/loadings/PageLoading';
 
 interface Product {
     id: string;
@@ -511,12 +512,8 @@ export default function AdminDashboard() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
-                </div>
-            </div>
+         
+            <PageLoading message='admin dashboard' />
         );
     }
 

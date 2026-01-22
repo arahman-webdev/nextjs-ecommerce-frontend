@@ -46,6 +46,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { AddToCart } from '@/components/SharedComponent/AddToCart';
+import { Input } from '@/components/ui/input';
 
 interface ProductImage {
   id: string;
@@ -573,7 +574,9 @@ export default function ProductDetailPage() {
                   >
                     <Minus size={20} />
                   </button>
-                  <div className="px-4 sm:px-6 text-lg sm:text-xl font-semibold  text-center">{quantity}</div>
+                  <div className="px-4 sm:px-6 text-lg sm:text-xl font-semibold  text-center">
+                    {quantity}
+                  </div>
                   <button
                     onClick={() => handleQuantityChange(1)}
                     className="p-3 sm:p-4 hover:bg-gray-50 transition-colors disabled:opacity-50"
@@ -591,8 +594,8 @@ export default function ProductDetailPage() {
                       price: product.price,
                       productImages: product.productImages,
                     }}
-                    quantity={quantity} 
-                    className="rounded-none bg-primary/80 w-full p-6"
+                    quantity={quantity}
+                    className="rounded-none bg-primary/90 w-full p-6 sm:p-6.5"
                   />
                 </div>
               </div>

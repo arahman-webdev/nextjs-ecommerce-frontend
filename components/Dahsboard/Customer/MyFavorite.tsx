@@ -20,6 +20,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { AddToCart } from '@/components/SharedComponent/AddToCart';
+import PageLoading from '@/components/SharedComponent/loadings/PageLoading';
 
 interface WishlistItem {
   id: string;
@@ -214,13 +215,7 @@ export default function MyFavorites() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" 
-                   style={{ color: '#83B734' }} />
-          <p className="text-gray-600">Loading your favorites...</p>
-        </div>
-      </div>
+      <PageLoading message='your favorites' />
     );
   }
 

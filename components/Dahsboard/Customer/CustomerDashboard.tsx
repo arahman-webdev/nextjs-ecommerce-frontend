@@ -17,6 +17,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import PageLoading from '@/components/SharedComponent/loadings/PageLoading';
 
 interface Order {
   id: string;
@@ -515,12 +516,7 @@ export default function CustomerDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
-        </div>
-      </div>
+      <PageLoading message='your dashboard'/>
     );
   }
 
