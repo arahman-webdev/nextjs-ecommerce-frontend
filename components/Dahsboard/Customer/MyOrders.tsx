@@ -224,32 +224,6 @@ export default function CusotmerOrders({ orders, onStatusUpdate, onRefresh }: Se
                     <>
                       <Button
                         size="sm"
-                        className="bg-blue-500 text-white hover:bg-blue-600"
-                        disabled={loadingId === order.id}
-                        onClick={() => updateOrderStatus(order.id, "CONFIRMED")}
-                      >
-                        {loadingId === order.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Confirm"
-                        )}
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        className="bg-purple-500 text-white hover:bg-purple-600"
-                        disabled={loadingId === order.id}
-                        onClick={() => updateOrderStatus(order.id, "PROCESSING")}
-                      >
-                        {loadingId === order.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Process"
-                        )}
-                      </Button>
-
-                      <Button
-                        size="sm"
                         className="bg-red-500 text-white hover:bg-red-600"
                         disabled={loadingId === order.id}
                         onClick={() => updateOrderStatus(order.id, "CANCELLED")}
@@ -261,104 +235,6 @@ export default function CusotmerOrders({ orders, onStatusUpdate, onRefresh }: Se
                         )}
                       </Button>
                     </>
-                  )}
-
-                  {/* CONFIRMED → PROCESSING / SHIP / CANCEL */}
-                  {order.status === "CONFIRMED" && (
-                    <>
-                      <Button
-                        size="sm"
-                        className="bg-purple-500 text-white hover:bg-purple-600"
-                        disabled={loadingId === order.id}
-                        onClick={() => updateOrderStatus(order.id, "PROCESSING")}
-                      >
-                        {loadingId === order.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Process"
-                        )}
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        className="bg-indigo-500 text-white hover:bg-indigo-600"
-                        disabled={loadingId === order.id}
-                        onClick={() => updateOrderStatus(order.id, "SHIPPED")}
-                      >
-                        {loadingId === order.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Ship"
-                        )}
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        className="bg-red-500 text-white hover:bg-red-600"
-                        disabled={loadingId === order.id}
-                        onClick={() => updateOrderStatus(order.id, "CANCELLED")}
-                      >
-                        {loadingId === order.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Cancel"
-                        )}
-                      </Button>
-                    </>
-                  )}
-
-                  {/* PROCESSING → SHIP / CANCEL */}
-                  {order.status === "PROCESSING" && (
-                    <>
-                      <Button
-                        size="sm"
-                        className="bg-indigo-500 text-white hover:bg-indigo-600"
-                        disabled={loadingId === order.id}
-                        onClick={() => updateOrderStatus(order.id, "SHIPPED")}
-                      >
-                        {loadingId === order.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Ship"
-                        )}
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        className="bg-red-500 text-white hover:bg-red-600"
-                        disabled={loadingId === order.id}
-                        onClick={() => updateOrderStatus(order.id, "CANCELLED")}
-                      >
-                        {loadingId === order.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Cancel"
-                        )}
-                      </Button>
-                    </>
-                  )}
-
-                  {/* SHIPPED → DELIVERED */}
-                  {order.status === "SHIPPED" && (
-                    <Button
-                      size="sm"
-                      className="bg-green-500 text-white hover:bg-green-600"
-                      disabled={loadingId === order.id}
-                      onClick={() => updateOrderStatus(order.id, "DELIVERED")}
-                    >
-                      {loadingId === order.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Mark as Delivered"
-                      )}
-                    </Button>
-                  )}
-
-                  {/* DELIVERED / CANCELLED / REFUNDED → no actions */}
-                  {(order.status === "DELIVERED" || 
-                    order.status === "CANCELLED" || 
-                    order.status === "REFUNDED") && (
-                    <span className="text-gray-400 text-sm">No actions available</span>
                   )}
 
                 

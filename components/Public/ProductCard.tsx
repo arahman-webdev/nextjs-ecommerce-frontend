@@ -175,7 +175,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                 name: product.name,
                 price: product.price,
                 productImages: product.productImages,
-
+                stock: product.stock
               }}
             />
           </div>

@@ -15,6 +15,7 @@ interface AddToCartProps {
     name: string
     price: number
     productImages: { imageUrl: string }[]
+    stock: number
   };
   quantity?:number
   className?: string
@@ -24,6 +25,7 @@ interface AddToCartProps {
 export function AddToCart({ 
   product, 
   quantity,
+
   onclick,
   className
 }: AddToCartProps) {
@@ -116,7 +118,7 @@ const handleAddToCart = async () => {
       {/* Add to Cart Button */}
       <Button 
         onClick={handleAddToCart}
-        disabled={addingToCart || !product}
+        disabled={addingToCart || product?.stock === 0 }
         size="sm"
    className={cn(
     "text-white min-w-30 transition-all duration-300 cursor-pointer",

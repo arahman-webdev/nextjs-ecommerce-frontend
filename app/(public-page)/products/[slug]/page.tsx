@@ -593,6 +593,7 @@ export default function ProductDetailPage() {
                       name: product.name,
                       price: product.price,
                       productImages: product.productImages,
+                      stock: product.stock
                     }}
                     quantity={quantity}
                     className="rounded-none bg-primary/90 w-full p-6 sm:p-6.5"
@@ -1087,6 +1088,7 @@ export default function ProductDetailPage() {
                             name: relatedProduct.name,
                             price: relatedProduct.price,
                             productImages: relatedProduct.productImages,
+                            stock: product.stock
                           }}
                         />
                       </div>

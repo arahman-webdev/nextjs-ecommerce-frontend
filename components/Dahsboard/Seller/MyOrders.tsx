@@ -351,28 +351,9 @@ export default function SellerOrders({ orders, onStatusUpdate, onRefresh }: Sell
                     </>
                   )}
 
-                  {/* SHIPPED → DELIVERED */}
-                  {order.status === "SHIPPED" && (
-                    <Button
-                      size="sm"
-                      className="bg-green-500 text-white hover:bg-green-600"
-                      disabled={loadingId === order.id}
-                      onClick={() => updateOrderStatus(order.id, "DELIVERED")}
-                    >
-                      {loadingId === order.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Mark as Delivered"
-                      )}
-                    </Button>
-                  )}
+                
 
-                  {/* DELIVERED / CANCELLED / REFUNDED → no actions */}
-                  {(order.status === "DELIVERED" || 
-                    order.status === "CANCELLED" || 
-                    order.status === "REFUNDED") && (
-                    <span className="text-gray-400 text-sm">No actions available</span>
-                  )}
+              
 
                 
                   

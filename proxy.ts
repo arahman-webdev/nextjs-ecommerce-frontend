@@ -18,7 +18,7 @@ const roleBasedRoutes: Record<string, string[]> = {
 /* ---------------------------
    Public routes
 ---------------------------- */
-const authRoutes = ["/login", "/signup", "/forgot-password"];
+const authRoutes = ["/login", "/register", "/forgot-password"];
 
 /* ---------------------------
    Payment public routes
@@ -115,7 +115,7 @@ export const config = {
     "/seller/:path*",
     "/customer/:path*",
     "/login",
-    "/signup",
+    "/register",
     "/forgot-password",
   ],
 };

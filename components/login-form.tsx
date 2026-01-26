@@ -165,44 +165,44 @@ function LoginFormContent() {
         const userRole = data.data.user?.role || 'CUSTOMER'
 
         // Determine where to redirect
-        // let targetUrl = '/dashboard';
+        let targetUrl = '/dashboard';
         
         // Check for redirect URL from query params directly (not from state)
-        // const redirectParam = searchParams.get('redirect');
-        // if (redirectParam) {
-        //   try {
-        //     const decoded = decodeURIComponent(redirectParam);
-        //     targetUrl = decoded;
-        //     console.log('Using redirect from query param:', decoded);
-        //   } catch (error) {
-        //     console.error('Failed to decode redirect URL:', error);
-        //     // Fallback to role-based redirect
-        //   }
-        // }
+        const redirectParam = searchParams.get('redirect');
+        if (redirectParam) {
+          try {
+            const decoded = decodeURIComponent(redirectParam);
+            targetUrl = decoded;
+            console.log('Using redirect from query param:', decoded);
+          } catch (error) {
+            console.error('Failed to decode redirect URL:', error);
+            // Fallback to role-based redirect
+          }
+        }
         
         // If no redirect param in URL, use role-based default
-        // if (!redirectParam) {
-        //   switch (userRole.toUpperCase()) {
-        //     case 'ADMIN':
-        //       targetUrl = '/dashboard/admin';
-        //       break;
-        //     case 'SELLER':
-        //       targetUrl = '/dashboard/seller';
-        //       break;
-        //     case 'CUSTOMER':
-        //       targetUrl = '/dashboard/customer';
-        //       break;
-        //   }
-        // }
+        if (!redirectParam) {
+          switch (userRole.toUpperCase()) {
+            case 'ADMIN':
+              targetUrl = '/dashboard/admin';
+              break;
+            case 'SELLER':
+              targetUrl = '/dashboard/seller';
+              break;
+            case 'CUSTOMER':
+              targetUrl = '/dashboard/customer';
+              break;
+          }
+        }
 
        
         
         // Use router.push for a smooth client-side navigation
-        // router.push(targetUrl);
-        // // Optionally add a small delay to ensure toast is visible
-        // setTimeout(() => {
-        //   router.push(targetUrl);
-        // }, 100);
+        router.push(targetUrl);
+        // Optionally add a small delay to ensure toast is visible
+        setTimeout(() => {
+          router.push(targetUrl);
+        }, 100);
 
       } else {
         const errorMessage = data.message || "Login failed. Please check your credentials."
