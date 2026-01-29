@@ -8,6 +8,7 @@ import Navbar from "@/components/SharedComponent/Navbar";
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "@/components/SharedComponent/Footer";
 import { WishlistProvider } from "../context/WishlistContext";
+import { AuthProvider } from "../context/AuthContext";
 
 
 const geistSans = Geist({
@@ -36,6 +37,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+
+        <AuthProvider>
         <CartProvider>
           <WishlistProvider>
             <Navbar />
@@ -44,6 +47,7 @@ export default function RootLayout({
             <Footer />
           </WishlistProvider>
         </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

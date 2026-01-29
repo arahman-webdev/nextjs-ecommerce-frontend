@@ -155,7 +155,7 @@ function PaymentSuccessContent() {
           <p>
             Need help? Contact our support team at{' '}
             <a href="mailto:support@tourhobe.com" className="text-blue-600 hover:underline">
-              support@tourhobe.com
+              support@shoapcart.com
             </a>
           </p>
         </div>

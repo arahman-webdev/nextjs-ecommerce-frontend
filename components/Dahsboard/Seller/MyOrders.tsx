@@ -351,6 +351,27 @@ export default function SellerOrders({ orders, onStatusUpdate, onRefresh }: Sell
                     </>
                   )}
 
+
+                        {/* PROCESSING → SHIP / CANCEL */}
+                  {order.status === "SHIPPED" && (
+                    <>
+                      <Button
+                        size="sm"
+                        className="bg-indigo-500 text-white hover:bg-indigo-600"
+                        disabled={loadingId === order.id}
+                        onClick={() => updateOrderStatus(order.id, "DELIVERED")}
+                      >
+                        {loadingId === order.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Delivered"
+                        )}
+                      </Button>
+
+                     
+                    </>
+                  )}
+
                 
 
               

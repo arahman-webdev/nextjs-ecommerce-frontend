@@ -179,15 +179,13 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
 
-  const clearCart = async (productIds?: string[]) => {
+const clearCart = async (productIds?: string[]) => {
   if (!isLoggedIn) {
-    // 🟡 guest
     setCartItems([]);
     localStorage.removeItem(STORAGE_KEY);
     return;
   }
 
-  // 🟢 logged in → DB
   const token = localStorage.getItem("accessToken");
 
   await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/clear`, {
@@ -196,14 +194,15 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    
+    body: JSON.stringify(
+      productIds?.length ? { productIds } : {}
+    ),
   });
-  
-  await fetchDBCart();
-  
 
-  setCartItems([]);
+  await fetchDBCart();
 };
+
+
 
   return (
     <CartContext.Provider

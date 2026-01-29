@@ -2,6 +2,7 @@
 export type OrderStatus = "PENDING" | "PROCESSING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
 
 export interface ProductImage {
+  id: string
   imageUrl: string;
 }
 
