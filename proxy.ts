@@ -11,7 +11,8 @@ const roleBasedRoutes: Record<string, string[]> = {
   CUSTOMER: [
     "/dashboard/customer",
     "/customer",
-    "/checkout", // ✅ checkout allowed ONLY for CUSTOMER
+    "/checkout",
+    "/payment",
   ],
 };
 
@@ -23,11 +24,11 @@ const authRoutes = ["/login", "/register", "/forgot-password"];
 /* ---------------------------
    Payment public routes
 ---------------------------- */
-const paymentPublicRoutes = [
-  "/checkout/success",
-  "/checkout/cancel",
-  "/payment/callback",
-];
+// const paymentPublicRoutes = [
+//   "/checkout/success",
+//   "/checkout/cancel",
+//   "/payment/success",
+// ];
 
 /* ---------------------------
    Redirect helper
@@ -47,7 +48,7 @@ function redirectToLogin(request: NextRequest) {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  /* 1️⃣ Skip static & API */
+  /* 1Skip static & API */
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -60,9 +61,9 @@ export function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("accessToken")?.value;
 
   /* 3️⃣ Allow public payment routes */
-  if (paymentPublicRoutes.some((r) => pathname.startsWith(r))) {
-    return NextResponse.next();
-  }
+  // if (paymentPublicRoutes.some((r) => pathname.startsWith(r))) {
+  //   return NextResponse.next();
+  // }
 
   /* 4️⃣ Not logged in → protected route */
   if (!accessToken && !authRoutes.includes(pathname)) {
@@ -110,6 +111,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/checkout/:path*",
+    "/payment/:path*",
     "/dashboard/:path*",
     "/admin/:path*",
     "/seller/:path*",

@@ -25,7 +25,7 @@ function PaymentLoading() {
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [bookingDetails, setBookingDetails] = useState<any>(null);
+  const [orderDetails, setOrderDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const transactionId = searchParams.get('transactionId');
@@ -36,9 +36,6 @@ function PaymentSuccessContent() {
     const timer = setTimeout(() => setLoading(false), 2000); // 2 sec
     return () => clearTimeout(timer);
   }, []);
-
-
-
 
 
 
@@ -65,26 +62,26 @@ function PaymentSuccessContent() {
             Payment Successful! 🎉
           </h1>
           <p className="text-gray-600 mb-8">
-            Your booking has been confirmed and payment is completed.
+            Your order has been confirmed and payment is completed.
           </p>
 
           {/* Booking Details */}
-          {bookingDetails ? (
+          {orderDetails ? (
             <div className="bg-green-50 rounded-xl p-6 mb-8 text-left">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Order Details</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Order ID:</span>
-                  <span className="font-medium">{bookingDetails.bookingCode}</span>
+                  <span className="font-medium">{orderDetails.bookingCode}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Product:</span>
-                  <span className="font-medium">{bookingDetails.tour?.title}</span>
+                  <span className="font-medium">{orderDetails.tour?.title}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Amount Paid:</span>
                   <span className="text-xl font-bold text-green-600">
-                    ${bookingDetails.payment?.amount}
+                    ${orderDetails.payment?.amount}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -102,7 +99,7 @@ function PaymentSuccessContent() {
           ) : (
             <div className="bg-yellow-50 rounded-xl p-6 mb-8 text-center">
               <p className="text-yellow-800">
-                Booking details could not be loaded. Please check order for confirmation.
+                order details could not be loaded. Please check order for confirmation.
               </p>
             </div>
           )}

@@ -265,6 +265,14 @@ export default function Navbar() {
                 <Search className="h-5 w-5" />
               </button>
 
+              {
+                loading ?(
+                 <>
+                 <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                 <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                 </> 
+                ):<>
+                
               {/* Wishlist */}
               <Link
                 href="/wishlist"
@@ -292,6 +300,9 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
+                </>
+              }
+
 
               {/* User Authentication Section */}
               {loading ? (

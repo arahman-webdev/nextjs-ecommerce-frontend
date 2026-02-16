@@ -10,15 +10,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { CartItem } from "@/types/productType";
+
+import Image from "next/image";
 
 
 interface IProps {
   children: React.ReactNode
   onConfirm: () => Promise<void>;
+  item: CartItem
 }
 
-export function ConfirmationAlert({onConfirm, children}:IProps) {
-  const handleConfirm = ()=>{
+export function ConfirmationAlert({ onConfirm, children, item }: IProps) {
+  const handleConfirm = () => {
     onConfirm()
   }
   return (
@@ -30,11 +34,14 @@ export function ConfirmationAlert({onConfirm, children}:IProps) {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
-          </AlertDialogDescription>
+          <AlertDialogTitle>Remove this item from cart?</AlertDialogTitle>
+          <div className="flex gap-4">
+            <Image src={item?.productImages?.[0]?.imageUrl} width={60} height={60} alt="product image" />
+            <div>
+              <h3>{item.name.slice(0, 20)}...</h3>
+              <span>${item.price}</span>
+            </div>
+          </div>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>

@@ -8,14 +8,14 @@ import { CartContext } from '@/app/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ShoppingBag, 
-  ArrowLeft, 
-  Trash2, 
-  Plus, 
-  Minus, 
-  Shield, 
-  Truck, 
+import {
+  ShoppingBag,
+  ArrowLeft,
+  Trash2,
+  Plus,
+  Minus,
+  Shield,
+  Truck,
   RefreshCw,
   Heart,
   Package,
@@ -26,6 +26,7 @@ import {
   Tag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ConfirmationAlert } from '@/components/SharedComponent/ConfirmationAlert';
 
 export default function CartPage() {
   const cartContext = useContext(CartContext);
@@ -56,6 +57,8 @@ export default function CartPage() {
 
   const { cartItems, updateQuantity, removeFromCart, clearCart } = cartContext;
 
+
+
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shippingCost = selectedShipping.price;
@@ -65,26 +68,38 @@ export default function CartPage() {
 
   // Handle quantity update
   const handleQuantityChange = async (id: string, delta: number) => {
-    setIsUpdating(id);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    updateQuantity(id, delta);
-    setIsUpdating(null);
+    try {
+      setIsUpdating(id)
+      await new Promise(resolve => setTimeout(resolve, 300));
+      await updateQuantity(id, delta);
+    } catch (error) {
+      console.log(error)
+
+    } finally {
+      setIsUpdating(null);
+    }
   };
 
   // Handle remove item
   const handleRemoveItem = async (id: string) => {
-    setIsUpdating(id);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    removeFromCart(id);
-    setIsUpdating(null);
+    try {
+      setIsUpdating(id);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      await removeFromCart(id);
+
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setIsUpdating(null);
+    }
   };
 
   // Handle apply coupon
   const handleApplyCoupon = () => {
     if (!couponCode.trim()) return;
-    
+
     setIsApplyingCoupon(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       if (couponCode.toLowerCase() === 'welcome10') {
@@ -120,15 +135,15 @@ export default function CartPage() {
             <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-8">
               <ShoppingBag className="h-16 w-16 text-primary" />
             </div>
-            
+
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
               Your cart is empty
             </h1>
-            
+
             <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
               Looks like you haven't added any items to your cart yet.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/products">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 px-8">
@@ -136,7 +151,7 @@ export default function CartPage() {
                   Continue Shopping
                 </Button>
               </Link>
-              
+
               <Link href="/">
                 <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10">
                   <ArrowLeft className="h-5 w-5 mr-2" />
@@ -144,7 +159,7 @@ export default function CartPage() {
                 </Button>
               </Link>
             </div>
-            
+
             {/* Trending products suggestion */}
             {/* <div className="mt-16">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -182,7 +197,7 @@ export default function CartPage() {
                 {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
               </p>
             </div>
-            
+
             <Link href="/products">
               <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -202,9 +217,9 @@ export default function CartPage() {
               <div className="p-6 border-b">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-gray-900">Cart Items</h2>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={clearCart}
                     className="text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
@@ -216,8 +231,8 @@ export default function CartPage() {
 
               <div className="divide-y">
                 {cartItems.map((item) => (
-                  <div 
-                    key={item.id} 
+                  <div
+                    key={item.id}
                     className="p-6 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row gap-6">
@@ -240,18 +255,18 @@ export default function CartPage() {
                       <div className="flex-1">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                           <div className="flex-1">
-                            <Link 
+                            <Link
                               href={`/products/${item.id}`}
                               className="text-lg font-semibold text-gray-900 hover:text-primary transition-colors"
                             >
                               {item.name}
                             </Link>
-                            
+
                             <div className="flex items-center gap-4 mt-2">
                               <span className="text-xl font-bold text-primary">
                                 {formatPrice(item.price)}
                               </span>
-                              
+
                               {item.price > 50 && (
                                 <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
                                   <Package className="h-3 w-3 mr-1" />
@@ -267,8 +282,8 @@ export default function CartPage() {
                                 (item.stock || 10) > 5 ? "bg-green-500" : "bg-amber-500"
                               )} />
                               <span className="text-sm text-gray-600">
-                                {(item.stock || 10) > 5 
-                                  ? 'In Stock' 
+                                {(item.stock || 10) > 5
+                                  ? 'In Stock'
                                   : 'Only ' + (item.stock || 10) + ' left'
                                 }
                               </span>
@@ -287,13 +302,13 @@ export default function CartPage() {
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
-                              
+
                               <div className="w-12 text-center">
                                 <span className="font-semibold text-gray-900">
                                   {item.quantity}
                                 </span>
                               </div>
-                              
+
                               <Button
                                 variant="outline"
                                 size="icon"
@@ -306,7 +321,7 @@ export default function CartPage() {
                             </div>
 
                             {/* Remove Button */}
-                            <Button
+                            {/* <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => handleRemoveItem(item.id)}
@@ -314,7 +329,11 @@ export default function CartPage() {
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
                             >
                               <Trash2 className="h-5 w-5" />
-                            </Button>
+                            </Button> */}
+                            <ConfirmationAlert
+                            onConfirm={()=>handleRemoveItem(item.id)} item={item}>
+                              <Trash2 size={18} className="text-red-600 hover:bg-blue-400 cursor-pointer" />
+                            </ConfirmationAlert>
                           </div>
                         </div>
 
@@ -330,7 +349,7 @@ export default function CartPage() {
                               Move to Wishlist
                             </Button>
                           </div>
-                          
+
                           <div className="text-right">
                             <p className="text-sm text-gray-600">Item Total</p>
                             <p className="text-lg font-bold text-gray-900">
@@ -353,7 +372,7 @@ export default function CartPage() {
                   Shipping Options
                 </h2>
               </div>
-              
+
               <div className="p-6">
                 <div className="space-y-3">
                   {shippingOptions.map((option) => (
@@ -408,7 +427,7 @@ export default function CartPage() {
                       <Tag className="h-4 w-4 text-primary" />
                       <h3 className="font-medium text-gray-900">Have a coupon code?</h3>
                     </div>
-                    
+
                     <div className="flex gap-2">
                       <Input
                         type="text"
@@ -440,7 +459,7 @@ export default function CartPage() {
                         </Button>
                       )}
                     </div>
-                    
+
                     {appliedCoupon && (
                       <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                         <div className="flex items-center gap-2">
@@ -464,17 +483,17 @@ export default function CartPage() {
                       <span className="text-gray-600">Subtotal</span>
                       <span className="font-medium">{formatPrice(subtotal)}</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                       <span className="text-gray-600">Shipping</span>
                       <span className="font-medium">{formatPrice(shippingCost)}</span>
                     </div>
-                    
+
                     <div className="flex justify-between">
                       <span className="text-gray-600">Estimated Tax</span>
                       <span className="font-medium">{formatPrice(tax)}</span>
                     </div>
-                    
+
                     {appliedCoupon && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Discount</span>
@@ -520,8 +539,8 @@ export default function CartPage() {
 
                   {/* Checkout Button */}
                   <Link href="/checkout">
-                    <Button 
-                      size="lg" 
+                    <Button
+                      size="lg"
                       className="w-full bg-primary hover:bg-primary/90 mt-4 py-6 text-lg"
                     >
                       Proceed to Checkout
@@ -531,9 +550,9 @@ export default function CartPage() {
 
                   {/* Continue Shopping */}
                   <Link href="/products">
-                    <Button 
-                      variant="outline" 
-                      size="lg" 
+                    <Button
+                      variant="outline"
+                      size="lg"
                       className="w-full border-primary text-primary hover:bg-primary/10 mt-2"
                     >
                       Continue Shopping

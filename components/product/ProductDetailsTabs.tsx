@@ -4,6 +4,7 @@ import DescriptionTab from './DescriptionTab';
 import SpecificationsTab from './SpecificationsTab';
 import ReviewsTab from './ReviewsTab';
 import ShippingTab from './ShippingTab';
+import { useState } from 'react';
 
 
 interface ProductDetailsTabsProps {
@@ -12,10 +13,12 @@ interface ProductDetailsTabsProps {
   user: any
 }
 
+
+
 export default function ProductDetailsTabs({ product, reviews, user }: ProductDetailsTabsProps) {
   return (
     <div className="mt-12 lg:mt-16">
-      <Tabs defaultValue="description" className="w-full">
+      <Tabs  defaultValue="description" className="w-full">
         <div className="border-b">
           <TabsList className="w-full bg-transparent h-12 lg:h-14 overflow-x-auto">
             <TabsTrigger
@@ -58,8 +61,8 @@ export default function ProductDetailsTabs({ product, reviews, user }: ProductDe
             <SpecificationsTab product={product} />
           </TabsContent>
           
-          <TabsContent value="reviews" className="mt-0">
-            <ReviewsTab product={product} reviews={reviews} user={user} />
+          <TabsContent id='reviews' value="reviews" className="mt-0">
+            <ReviewsTab  product={product} reviews={reviews} user={user} />
           </TabsContent>
           
           <TabsContent value="shipping" className="mt-0">

@@ -42,7 +42,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
               src={mainImage}
               alt={product.name}
               fill
-              className="object-contain bg-[#FAFAFA]  group-hover:scale-105 transition-transform duration-500"
+              className="object-contain bg-[#FAFAFA] scale-95  group-hover:scale-110 transition-transform duration-500"
             />
           </Link>
 

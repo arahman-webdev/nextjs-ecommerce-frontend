@@ -18,6 +18,8 @@ import { AddToCart } from '@/components/SharedComponent/AddToCart';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface ProductInfoSectionProps {
   product: any;
@@ -98,6 +100,10 @@ export default function ProductInfoSection({ product, reviews }: ProductInfoSect
     }
   };
 
+  const router = useRouter()
+
+
+
   return (
     <div className="space-y-6 lg:space-y-8">
       {/* Title and Rating */}
@@ -106,9 +112,9 @@ export default function ProductInfoSection({ product, reviews }: ProductInfoSect
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             {renderRating(product.averageRating)}
-            <span className="text-gray-600 text-sm">
+            <button onClick={()=>{}} className="text-gray-600 text-sm cursor-pointer hover:underline hover:text-primary transition-all ease-in-out duration-300">
               ({product.reviewCount} reviews)
-            </span>
+            </button>
           </div>
           <Separator orientation="vertical" className="h-4 hidden sm:block" />
           <span className="text-sm font-medium text-green-600">

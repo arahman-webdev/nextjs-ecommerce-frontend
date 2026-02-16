@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Star, MessageSquare, Users, X, Edit } from 'lucide-react';
+import { Star, MessageSquare, Users, X, Edit, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,9 @@ import { Textarea } from '../ui/textarea';
 import Image from 'next/image';
 import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
 
 interface ReviewsTabProps {
   product: any;
@@ -16,7 +19,7 @@ interface ReviewsTabProps {
 }
 
 export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) {
-  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewRating, setReviewRating] = useState(1);
   const [reviewComment, setReviewComment] = useState('');
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
@@ -26,7 +29,7 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
 
 
 
-  
+
 
   const renderRating = (rating: number) => {
     return (
@@ -44,6 +47,8 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
     );
   };
 
+
+
   const handleSubmitReview = async () => {
     try {
       if (!reviewComment.trim()) {
@@ -59,7 +64,7 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
       const token = localStorage.getItem('accessToken');
       if (!token) {
         toast.error('Please login to submit a review');
-        return router.push('/login')
+        return router.push(`/login?redirect=/products/${product.slug}`);
       }
 
       setSubmittingReview(true);
@@ -67,41 +72,52 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
       const reviewData = {
         productId: product.id,
         rating: reviewRating,
-        comment: reviewComment
+        comment: reviewComment,
       };
 
-      const response = await axios.post(
+      const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/product/review/${product.id}`,
-        reviewData,
         {
+          method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify(reviewData),
         }
       );
 
-      if (response.data?.success) {
+      /* ❗ fetch does NOT throw automatically */
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Session expired. Please login again.');
+          localStorage.clear();
+          return;
+        }
+
+        throw new Error(data?.message || 'Failed to submit review');
+      }
+
+      const createdData = data?.data;
+
+      if (createdData) {
+        setLocalReviews((prev) => [createdData, ...prev])
+
         toast.success('Review submitted successfully!');
         setReviewComment('');
-        setReviewRating(5);
+        setReviewRating(1);
         setShowReviewForm(false);
       }
     } catch (error: any) {
       console.error('Review submission error:', error);
-      if (error.response?.status === 401) {
-        toast.error('Session expired. Please login again.');
-        localStorage.clear();
-      } else if (error.response?.data?.message) {
-        toast.error(error.response.data.message); console.log("from submitting review one-----", error)
-      } else {
-        console.log("from submitting review", error)
-        toast.error('Failed to submit review. Please try again.');
-      }
+      toast.error(error.message || 'Failed to submit review. Please try again.');
     } finally {
       setSubmittingReview(false);
     }
   };
+
 
   // Edit review 
 
@@ -129,9 +145,9 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
       );
 
       const updatedReview = res.data.data;
-      console.log("from review id", reviewId)
 
-      // 🔄 AUTO REFRESH (Optimistic update)
+
+      // AUTO REFRESH
       setLocalReviews((prev) =>
         prev.map((r) =>
           r.id === reviewId ? { ...r, ...updatedReview } : r
@@ -149,7 +165,7 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
 
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+    <div id='reviews' className="flex flex-col lg:flex-row gap-8 lg:gap-12">
       <div className="lg:w-1/3">
         <div className="bg-gray-50 rounded-xl lg:rounded-2xl p-6 lg:p-8">
           <div className="text-center mb-6 lg:mb-8">
@@ -160,10 +176,10 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
             </p>
           </div>
 
-          <div className="space-y-3 lg:space-y-4">
+          <div className="space-y-3 lg:space-y-4" id='reviews'>
             {[5, 4, 3, 2, 1].map((stars) => {
               const count = localReviews.filter(r => Math.round(r.rating) === stars).length;
-              const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+              const percentage = localReviews.length > 0 ? (count / localReviews.length) * 100 : 0;
               return (
                 <div key={stars} className="flex items-center gap-3">
                   <div className="flex items-center gap-1 min-w-[60px] lg:min-w-[80px]">
@@ -185,14 +201,69 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
             })}
           </div>
 
-          <Button
-            className="w-full mt-6 lg:mt-8 h-10 lg:h-12"
-            style={{ backgroundColor: '#83B734' }}
-            onClick={() => setShowReviewForm(true)}
-          >
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Write a Review
-          </Button>
+          {/* Writing review  */}
+
+
+          <Dialog open={showReviewForm} onOpenChange={setShowReviewForm}>
+            <form>
+              <DialogTrigger asChild>
+                <Button onClick={() => setShowReviewForm(true)} className="w-full mt-6 lg:mt-8 h-10 lg:h-12 cursor-pointer bg-primary" >            <MessageSquare className="h-4 w-4 mr-2" />
+                  Write a Review</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <div className="">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-bold text-gray-900">Write a Review</h4>
+
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rating
+                    </label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewRating(star)}
+                          className="text-2xl  focus:outline-none"
+                        >
+                          {star <= reviewRating ? <Star className='fill-yellow-400 text-yellow-400' /> : <Star />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <Textarea
+                      placeholder="Share your experience with this product..."
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      className="min-h-[120px]"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button onClick={() => setShowReviewForm(false)} variant="outline">Cancel</Button>
+                  </DialogClose>
+                  <Button
+                    onClick={handleSubmitReview}
+                    disabled={submittingReview || !reviewComment.trim()}
+                    className="bg-primary hover:bg-primary/80 cursor-pointer"
+                  >
+                    {submittingReview ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Submitting...
+                      </>
+                    ) : (
+                      'Submit Review'
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </form>
+          </Dialog>
         </div>
       </div>
 
@@ -240,7 +311,7 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
 
                 </div>
 
-                
+
 
                 {editingReviewId === review.id ? (
                   <div className="mt-4 space-y-4">
@@ -290,13 +361,16 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
                 )}
 
 
-                <div className="flex items-center gap-4 mt-4 lg:mt-6">
-                  <button className="text-sm text-gray-500 hover:text-gray-700">
-                    Helpful? 👍
-                  </button>
-                  <button className="text-sm text-gray-500 hover:text-gray-700">
-                    Reply
-                  </button>
+                <div className=" gap-4 mt-4 lg:mt-6">
+                  <p className='text-gray-600'>Was this review helpful to you?</p>
+                  <div className='flex gap-2 py-2'>
+                    <button className="text-sm text-gray-500 hover:text-gray-700 border p-2 flex justify-between gap-2 items-center">
+                      <ThumbsUp /> <span>Helpful</span>
+                    </button>
+                    <button className="text-sm text-gray-500 hover:text-gray-700 border p-2 flex justify-between gap-2 items-center">
+                      <ThumbsDown /> <span>Not Helpful</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -318,66 +392,10 @@ export default function ReviewsTab({ product, reviews, user }: ReviewsTabProps) 
             </div>
           )}
           {/* Review Form Modal */}
-          {showReviewForm && (
-            <div className="mb-6 p-6 bg-gray-50 rounded-xl border">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-bold text-gray-900">Write a Review</h4>
-                <button
-                  onClick={() => setShowReviewForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Rating
-                </label>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setReviewRating(star)}
-                      className="text-2xl focus:outline-none"
-                    >
-                      {star <= reviewRating ? <Star className='fill-yellow-400 text-yellow-400' /> : '☆'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="mb-4">
-                <Textarea
-                  placeholder="Share your experience with this product..."
-                  value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
-                  className="min-h-[120px]"
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowReviewForm(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSubmitReview}
-                  disabled={submittingReview || !reviewComment.trim()}
-                  className="bg-primary hover:bg-primary/80 cursor-pointer"
-                >
-                  {submittingReview ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Submitting...
-                    </>
-                  ) : (
-                    'Submit Review'
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
+
+
+
+
 
         </div>
       </div>

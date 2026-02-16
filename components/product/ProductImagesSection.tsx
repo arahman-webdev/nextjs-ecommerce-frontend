@@ -184,7 +184,7 @@ export default function ProductImagesSection({ product, images }: ProductImagesS
             className="absolute inset-0 cursor-pointer"
           >
             <div
-              className="absolute w-72 h-64  bg-green-50/20"
+              className="absolute w-64 h-64  bg-green-50/20"
               style={{
                 left: `calc(${zoomPosition.x}% - 128px)`,
                 top: `calc(${zoomPosition.y}% - 128px)`,

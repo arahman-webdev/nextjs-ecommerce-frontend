@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/com
 import Link from "next/link"
 import { CartContext } from "@/app/context/CartContext"
 import { Spinner } from "./Spinner"
-import { Trash2, Plus, Minus, ShoppingCart, X } from "lucide-react"
+import { Trash2, Plus, Minus, ShoppingCart, X, RefreshCw } from "lucide-react"
 
 interface AddToCartProps {
   product?: {
@@ -17,13 +17,13 @@ interface AddToCartProps {
     productImages: { imageUrl: string }[]
     stock: number
   };
-  quantity?:number
+  quantity?: number
   className?: string
   onclick?: () => Promise<void> | void
 }
 
-export function AddToCart({ 
-  product, 
+export function AddToCart({
+  product,
   quantity,
 
   onclick,
@@ -38,52 +38,62 @@ export function AddToCart({
 
 
   // Handle add to cart
-const handleAddToCart = async () => {
-  if (!cartContext || !product) return;
+  const handleAddToCart = async () => {
+    if (!cartContext || !product) return;
 
-  setAddingToCart(true);
+    setAddingToCart(true);
 
-  try {
-    await cartContext.addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      productImages: product.productImages || [],
-      quantity: quantity ?? 1 as number, // ✅ ONLY source of truth
-    });
+    try {
+      await cartContext.addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        productImages: product.productImages || [],
+        quantity: quantity ?? 1 as number, // ✅ ONLY source of truth
+      });
 
-    // Optional UX delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+      // Optional UX delay
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-    setIsOpen(true);
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setAddingToCart(false);
-  }
-};
+      setIsOpen(true);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setAddingToCart(false);
+    }
+  };
 
 
   // Handle quantity change
   const handleQuantityChange = async (id: string, delta: number) => {
-    if (!cartContext) return
-    
-  
-    setIsUpdating(id)
-    await new Promise(resolve => setTimeout(resolve, 300))
-    cartContext.updateQuantity(id, delta)
-    setIsUpdating(null)
+    try {
+      if (!cartContext) return
+      setIsUpdating(id)
+      await new Promise(resolve => setTimeout(resolve, 300))
+      await cartContext.updateQuantity(id, delta)
+
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setIsUpdating(null)
+    }
   }
 
   // Handle remove item
   const handleRemove = async (id: string) => {
-    if (!cartContext) return
-    
-   
-    setIsUpdating(id)
-    await new Promise(resolve => setTimeout(resolve, 300))
-    cartContext.removeFromCart(id)
-    setIsUpdating(null)
+    try {
+      if (!cartContext) return
+
+
+      setIsUpdating(id)
+      await new Promise(resolve => setTimeout(resolve, 300))
+      await cartContext.removeFromCart(id)
+
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setIsUpdating(null)
+    }
   }
 
   // Calculate total
@@ -101,7 +111,7 @@ const handleAddToCart = async () => {
     }).format(price)
   }
 
- 
+
 
   // Show loading if no cart context
   if (!cartContext) {
@@ -116,23 +126,23 @@ const handleAddToCart = async () => {
   return (
     <>
       {/* Add to Cart Button */}
-      <Button 
+      <Button
         onClick={handleAddToCart}
-        disabled={addingToCart || product?.stock === 0 }
+        disabled={addingToCart || product?.stock === 0}
         size="sm"
-   className={cn(
-    "text-white min-w-30 transition-all duration-300 cursor-pointer",
-    addingToCart
-      ? "bg-primary/80 cursor-wait"
-      : "bg-primary hover:bg-primary/90",
-    className as string
-  )}
+        className={cn(
+          "text-white min-w-30 transition-all duration-300 cursor-pointer",
+          addingToCart
+            ? "bg-primary/80 cursor-wait"
+            : "bg-primary hover:bg-primary/90",
+          className as string
+        )}
       >
         {addingToCart ? (
           <>
             <Spinner className="h-4 w-4 mr-2 animate-spin" />
             Adding...
-            
+
           </>
         ) : (
           <>
@@ -157,7 +167,7 @@ const handleAddToCart = async () => {
                 <ShoppingCart className="h-20 w-20 text-gray-300 mb-4" />
                 <p className="text-gray-500 text-lg mb-4">Your cart is empty</p>
                 <p className="text-sm text-gray-400 mb-2">Click "Add to Cart" to add items</p>
-                <Button 
+                <Button
                   onClick={() => setIsOpen(false)}
                   className="bg-primary hover:bg-primary/90"
                 >
@@ -179,9 +189,9 @@ const handleAddToCart = async () => {
                         className="w-full h-full object-cover rounded-lg"
                       />
                       {isUpdating === item.id && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
-                          <Spinner className="h-6 w-6 text-white animate-spin" />
-                        </div>
+                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                            <RefreshCw className="h-8 w-8 text-white animate-spin" />
+                          </div>
                       )}
                       {justAdded === item.id && !isUpdating && (
                         <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
@@ -189,7 +199,7 @@ const handleAddToCart = async () => {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Product Info */}
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">
@@ -214,11 +224,11 @@ const handleAddToCart = async () => {
                           >
                             <Minus className="h-3 w-3" />
                           </button>
-                          
+
                           <span className="px-3 py-1 border rounded font-medium min-w-[40px] text-center">
                             {item.quantity}
                           </span>
-                          
+
                           <button
                             onClick={() => handleQuantityChange(item.id, 1)}
                             disabled={isUpdating === item.id}
@@ -227,7 +237,7 @@ const handleAddToCart = async () => {
                             <Plus className="h-3 w-3" />
                           </button>
                         </div>
-                        
+
                         <button
                           onClick={() => handleRemove(item.id)}
                           disabled={isUpdating === item.id}
@@ -236,7 +246,7 @@ const handleAddToCart = async () => {
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                      
+
                       <div className="text-right mt-2">
                         <span className="text-sm text-gray-600">
                           Subtotal: {formatPrice(item.price * item.quantity)}
@@ -259,23 +269,23 @@ const handleAddToCart = async () => {
                     {formatPrice(totalPrice)}
                   </span>
                 </div>
-                
+
                 <div className="flex flex-col gap-2">
-                  <Link 
-                    href="/cart" 
+                  <Link
+                    href="/cart"
                     className="w-full"
                     onClick={() => setIsOpen(false)}
                   >
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full border-primary text-primary hover:bg-primary/10"
                     >
                       View Cart
                     </Button>
                   </Link>
-                  
-                  <Link 
-                    href="/checkout" 
+
+                  <Link
+                    href="/checkout"
                     className="w-full"
                     onClick={() => setIsOpen(false)}
                   >
@@ -285,7 +295,7 @@ const handleAddToCart = async () => {
                   </Link>
                 </div>
               </div>
-              
+
               <p className="text-xs text-center text-gray-500 pt-4 border-t">
                 Free shipping on orders over $50
               </p>
